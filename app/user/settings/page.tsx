@@ -38,10 +38,10 @@ export default function UserSettingsPage() {
           return
         }
 
-        // Fetch profile data
+        // Check if user is banned by fetching profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role')
+          .select('id, name, email, role, is_banned')
           .eq('id', user.id)
           .single()
 
@@ -51,6 +51,15 @@ export default function UserSettingsPage() {
           return
         }
 
+        // If user is banned, redirect to public page
+        if (profileData.is_banned) {
+          // Sign out the user
+          await supabase.auth.signOut()
+          router.push('/?message=banned')
+          return
+        }
+
+        // Fetch profile data
         setProfile(profileData)
         setFormData({
           name: profileData.name || '',

@@ -38,6 +38,27 @@ export default function BusinessDocuments() {
           return
         }
 
+        // Check if user is banned by fetching profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_banned')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError)
+          router.push('/auth/login')
+          return
+        }
+
+        // If user is banned, redirect to public page
+        if (profileData.is_banned) {
+          // Sign out the user
+          await supabase.auth.signOut()
+          router.push('/?message=banned')
+          return
+        }
+
         // Get business for this user
         const { data: business, error: businessError } = await supabase
           .from('businesses')

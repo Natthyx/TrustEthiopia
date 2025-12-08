@@ -22,6 +22,7 @@ import {
   Cell,
 } from "recharts"
 import { Star, Users, MessageSquare, TrendingUp, Plus } from "lucide-react"
+import { useBannedUserCheck } from '@/hooks/useBannedUserCheck'
 
 interface BusinessData {
   id: string
@@ -54,6 +55,9 @@ export default function BusinessDashboard() {
   })
   const router = useRouter()
   const supabase = createClient()
+
+  // Check if user is banned
+  useBannedUserCheck('business')
 
   useEffect(() => {
     const fetchBusinessData = async () => {
@@ -120,6 +124,17 @@ export default function BusinessDashboard() {
     }
 
     fetchBusinessData()
+
+    // Listen for auth state changes to redirect when logged out
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/')
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [router])
 
   const handleSetupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -398,50 +413,43 @@ export default function BusinessDashboard() {
               {reviews.length > 0 ? (
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                      <div className="flex justify-between">
+                    <div key={review.id} className="border-b pb-4 last:border-0 last:pb-0">
+                      <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium">{review.reviewer?.name || 'Anonymous'}</p>
-                          <div className="flex items-center mt-1">
+                          <div className="flex items-center gap-2 mb-1">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                                className={`w-4 h-4 ${
+                                  i < review.rating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300"
+                                }`}
                               />
                             ))}
+                            <span className="text-sm font-medium ml-2">
+                              {review.reviewer?.name || "Anonymous"}
+                            </span>
                           </div>
+                          <p className="text-sm text-muted-foreground">
+                            {review.comment || "No comment provided"}
+                          </p>
                         </div>
-                        <span className="text-sm text-muted-foreground">
-                          {review.created_at ? new Date(review.created_at).toLocaleDateString() : 'Unknown date'}
+                        <span className="text-xs text-muted-foreground">
+                          {review.created_at
+                            ? new Date(review.created_at).toLocaleDateString()
+                            : ""}
                         </span>
                       </div>
-                      {review.comment && (
-                        <p className="text-muted-foreground mt-2 text-sm">{review.comment}</p>
-                      )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">No reviews yet</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No reviews yet. Encourage your customers to leave reviews!
+                </p>
               )}
             </Card>
-          </div>
-
-          {/* Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { title: "Pending Reviews", count: "3", action: "Review Now" },
-              { title: "Unanswered Questions", count: "5", action: "Respond" },
-              { title: "Documents to Upload", count: "1", action: "Upload" },
-            ].map((item, idx) => (
-              <Card key={idx} className="p-6">
-                <h3 className="font-semibold text-sm text-muted-foreground">{item.title}</h3>
-                <p className="text-2xl font-bold mt-2">{item.count}</p>
-                <Button variant="outline" size="sm" className="mt-4 w-full bg-transparent">
-                  {item.action}
-                </Button>
-              </Card>
-            ))}
           </div>
         </div>
       </main>

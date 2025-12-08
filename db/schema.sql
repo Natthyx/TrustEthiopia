@@ -16,6 +16,8 @@ CREATE TABLE profiles (
 CREATE TABLE categories (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
+  icon TEXT,
+  bg_color TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -171,6 +173,50 @@ CREATE POLICY "Business owners can insert their own documents" ON business_docum
     EXISTS (
       SELECT 1 FROM businesses 
       WHERE businesses.id = business_documents.business_id 
+      AND businesses.business_owner_id = auth.uid()
+    )
+  );
+
+-- Business categories policies
+CREATE POLICY "Business categories are viewable by everyone" ON business_categories
+  FOR SELECT USING (true);
+
+CREATE POLICY "Business owners can insert their own business categories" ON business_categories
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM businesses 
+      WHERE businesses.id = business_categories.business_id 
+      AND businesses.business_owner_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Business owners can delete their own business categories" ON business_categories
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM businesses 
+      WHERE businesses.id = business_categories.business_id 
+      AND businesses.business_owner_id = auth.uid()
+    )
+  );
+
+-- Business subcategories policies
+CREATE POLICY "Business subcategories are viewable by everyone" ON business_subcategories
+  FOR SELECT USING (true);
+
+CREATE POLICY "Business owners can insert their own business subcategories" ON business_subcategories
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM businesses 
+      WHERE businesses.id = business_subcategories.business_id 
+      AND businesses.business_owner_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Business owners can delete their own business subcategories" ON business_subcategories
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM businesses 
+      WHERE businesses.id = business_subcategories.business_id 
       AND businesses.business_owner_id = auth.uid()
     )
   );

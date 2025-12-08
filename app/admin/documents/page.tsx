@@ -57,25 +57,20 @@ export default function AdminDocumentsPage() {
           return
         }
 
-        // Fetch all documents with business info
-        const { data: documentsData, error: documentsError } = await supabase
-          .from('business_documents')
-          .select(`
-            id,
-            document_name,
-            document_url,
-            uploaded_at,
-            status,
-            business:businesses(business_name)
-          `)
-          .order('uploaded_at', { ascending: false })
+        // Fetch all documents with business info using API route
+        const response = await fetch('/api/admin/business-documents', {
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          }
+        })
 
-        if (documentsError) {
-          console.error('Error fetching documents:', documentsError)
-        } else {
-          setDocuments(documentsData || [])
-          setFilteredDocuments(documentsData || [])
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents')
         }
+
+        const documentsData = await response.json()
+        setDocuments(documentsData || [])
+        setFilteredDocuments(documentsData || [])
 
         setLoading(false)
       } catch (error) {
@@ -104,15 +99,19 @@ export default function AdminDocumentsPage() {
     if (!selectedDocument) return
 
     try {
-      const { error } = await supabase
-        .from('business_documents')
-        .update({ status: 'approved' })
-        .eq('id', selectedDocument.id)
+      // Approve document using API route
+      const response = await fetch(`/api/admin/business-documents/${selectedDocument.id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      })
 
-      if (error) {
-        console.error('Error approving document:', error)
-        return
+      if (!response.ok) {
+        throw new Error('Failed to approve document')
       }
+
+      const result = await response.json()
 
       // Update local state
       setDocuments(prev => 
@@ -132,15 +131,19 @@ export default function AdminDocumentsPage() {
     if (!selectedDocument) return
 
     try {
-      const { error } = await supabase
-        .from('business_documents')
-        .update({ status: 'rejected' })
-        .eq('id', selectedDocument.id)
+      // Reject document using API route
+      const response = await fetch(`/api/admin/business-documents/${selectedDocument.id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      })
 
-      if (error) {
-        console.error('Error rejecting document:', error)
-        return
+      if (!response.ok) {
+        throw new Error('Failed to reject document')
       }
+
+      const result = await response.json()
 
       // Update local state
       setDocuments(prev => 
@@ -153,6 +156,30 @@ export default function AdminDocumentsPage() {
       setSelectedDocument(null)
     } catch (error) {
       console.error('Error rejecting document:', error)
+    }
+  }
+
+  const handleDelete = async (documentId: string) => {
+    try {
+      // Delete document using API route
+      const response = await fetch(`/api/admin/business-documents/${documentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete document')
+      }
+
+      const result = await response.json()
+
+      // Update local state
+      setDocuments(prev => prev.filter(doc => doc.id !== documentId))
+      setFilteredDocuments(prev => prev.filter(doc => doc.id !== documentId))
+    } catch (error) {
+      console.error('Error deleting document:', error)
     }
   }
 
@@ -242,17 +269,26 @@ export default function AdminDocumentsPage() {
                         {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : "Unknown date"}
                       </TableCell>
                       <TableCell className="text-right">
-                        {doc.status === "pending" && (
+                        <div className="flex gap-2 justify-end">
+                          {doc.status === "pending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelectedDocument(doc)
+                                setOpenDialog(true)
+                              }}
+                            >
+                              Review
+                            </Button>
+                          )}
                           <Button
                             size="sm"
-                            onClick={() => {
-                              setSelectedDocument(doc)
-                              setOpenDialog(true)
-                            }}
+                            variant="destructive"
+                            onClick={() => handleDelete(doc.id)}
                           >
-                            Review
+                            Delete
                           </Button>
-                        )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -122,7 +122,7 @@ export async function loginUser(email: string, password: string) {
     
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_banned')
       .eq('id', user.id)
       .single()
     
@@ -130,6 +130,11 @@ export async function loginUser(email: string, password: string) {
       console.error('Profile fetch error:', profileError)
       // This is a critical error - user exists but profile doesn't
       return { error: 'User profile not found. Please contact support.' }
+    }
+    
+    // Check if user is banned
+    if (profile.is_banned) {
+      return { error: 'Your account has been banned. Please contact support for assistance.' }
     }
     
     // If this is a business user, check if they have a business record

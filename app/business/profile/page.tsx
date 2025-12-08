@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RatingStars } from "@/components/rating-stars"
-import { Plus, X } from "lucide-react"
+import { Plus, X, ChevronDown, ChevronRight } from "lucide-react"
 
 interface BusinessData {
   id: string
@@ -29,14 +29,27 @@ interface Category {
   name: string
 }
 
+interface Subcategory {
+  id: string
+  name: string
+  category_id: string
+}
+
 interface BusinessCategory {
   category_id: string
+}
+
+interface BusinessSubcategory {
+  subcategory_id: string
 }
 
 export default function BusinessProfile() {
   const [business, setBusiness] = useState<BusinessData | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([])
   const [businessCategories, setBusinessCategories] = useState<BusinessCategory[]>([])
+  const [businessSubcategories, setBusinessSubcategories] = useState<BusinessSubcategory[]>([])
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -46,7 +59,8 @@ export default function BusinessProfile() {
     description: "",
     location: "",
     website: "",
-    categoryId: ""
+    categoryId: "",
+    subcategoryId: ""
   })
   const router = useRouter()
   const supabase = createClient()
@@ -59,6 +73,27 @@ export default function BusinessProfile() {
         
         if (userError || !user) {
           router.push('/auth/login')
+          return
+        }
+
+        // Check if user is banned by fetching profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_banned')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError)
+          router.push('/auth/login')
+          return
+        }
+
+        // If user is banned, redirect to public page
+        if (profileData.is_banned) {
+          // Sign out the user
+          await supabase.auth.signOut()
+          router.push('/?message=banned')
           return
         }
 
@@ -81,7 +116,8 @@ export default function BusinessProfile() {
           description: businessData.description || "",
           location: businessData.location || "",
           website: businessData.website || "",
-          categoryId: ""
+          categoryId: "",
+          subcategoryId: ""
         })
 
         // Fetch all categories
@@ -94,6 +130,16 @@ export default function BusinessProfile() {
           setCategories(categoriesData || [])
         }
 
+        // Fetch all subcategories
+        const { data: subcategoriesData, error: subcategoriesError } = await supabase
+          .from('subcategories')
+          .select('id, name, category_id')
+          .order('name')
+
+        if (!subcategoriesError) {
+          setSubcategories(subcategoriesData || [])
+        }
+
         // Fetch business categories
         const { data: businessCategoriesData, error: businessCategoriesError } = await supabase
           .from('business_categories')
@@ -102,14 +148,16 @@ export default function BusinessProfile() {
 
         if (!businessCategoriesError) {
           setBusinessCategories(businessCategoriesData || [])
-          
-          // Set the first category as selected if exists
-          if (businessCategoriesData && businessCategoriesData.length > 0) {
-            setFormData(prev => ({
-              ...prev,
-              categoryId: businessCategoriesData[0].category_id
-            }))
-          }
+        }
+
+        // Fetch business subcategories
+        const { data: businessSubcategoriesData, error: businessSubcategoriesError } = await supabase
+          .from('business_subcategories')
+          .select('subcategory_id')
+          .eq('business_id', businessData.id)
+
+        if (!businessSubcategoriesError) {
+          setBusinessSubcategories(businessSubcategoriesData || [])
         }
 
         setLoading(false)
@@ -133,7 +181,15 @@ export default function BusinessProfile() {
   const handleCategoryChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      categoryId: value
+      categoryId: value,
+      subcategoryId: "" // Reset subcategory when category changes
+    }))
+  }
+
+  const handleSubcategoryChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      subcategoryId: value
     }))
   }
 
@@ -142,7 +198,7 @@ export default function BusinessProfile() {
 
     try {
       // Add category to business
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('business_categories')
         .upsert({
           business_id: business.id,
@@ -153,7 +209,7 @@ export default function BusinessProfile() {
 
       if (error) {
         console.error('Error adding category:', error)
-        setError('Failed to add category. Please try again.')
+        setError(`Failed to add category: ${error.message || 'Please try again.'}`)
         return
       }
 
@@ -173,13 +229,60 @@ export default function BusinessProfile() {
       // Clear selection
       setFormData(prev => ({
         ...prev,
-        categoryId: ""
+        categoryId: "",
+        subcategoryId: ""
       }))
       
       setSuccess('Category added successfully!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding category:', error)
-      setError('An unexpected error occurred. Please try again.')
+      setError(`An unexpected error occurred: ${error.message || 'Please try again.'}`)
+    }
+  }
+
+  const handleAddSubcategory = async () => {
+    if (!formData.subcategoryId || !business) return
+
+    try {
+      // Add subcategory to business
+      const { error, data } = await supabase
+        .from('business_subcategories')
+        .upsert({
+          business_id: business.id,
+          subcategory_id: formData.subcategoryId
+        }, {
+          onConflict: 'business_id,subcategory_id'
+        })
+
+      if (error) {
+        console.error('Error adding subcategory:', error)
+        setError(`Failed to add subcategory: ${error.message || 'Please try again.'}`)
+        return
+      }
+
+      // Update local state
+      const newSubcategory = {
+        subcategory_id: formData.subcategoryId
+      }
+      
+      setBusinessSubcategories(prev => {
+        // Check if subcategory already exists
+        if (!prev.some(bs => bs.subcategory_id === formData.subcategoryId)) {
+          return [...prev, newSubcategory]
+        }
+        return prev
+      })
+
+      // Clear selection
+      setFormData(prev => ({
+        ...prev,
+        subcategoryId: ""
+      }))
+      
+      setSuccess('Subcategory added successfully!')
+    } catch (error: any) {
+      console.error('Error adding subcategory:', error)
+      setError(`An unexpected error occurred: ${error.message || 'Please try again.'}`)
     }
   }
 
@@ -188,7 +291,7 @@ export default function BusinessProfile() {
 
     try {
       // Remove category from business
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('business_categories')
         .delete()
         .match({
@@ -198,17 +301,62 @@ export default function BusinessProfile() {
 
       if (error) {
         console.error('Error removing category:', error)
-        setError('Failed to remove category. Please try again.')
+        setError(`Failed to remove category: ${error.message || 'Please try again.'}`)
         return
       }
 
       // Update local state
       setBusinessCategories(prev => prev.filter(bc => bc.category_id !== categoryId))
       setSuccess('Category removed successfully!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing category:', error)
-      setError('An unexpected error occurred. Please try again.')
+      setError(`An unexpected error occurred: ${error.message || 'Please try again.'}`)
     }
+  }
+
+  const handleRemoveSubcategory = async (subcategoryId: string) => {
+    if (!business) return
+
+    try {
+      // Remove subcategory from business
+      const { error, data } = await supabase
+        .from('business_subcategories')
+        .delete()
+        .match({
+          business_id: business.id,
+          subcategory_id: subcategoryId
+        })
+
+      if (error) {
+        console.error('Error removing subcategory:', error)
+        setError(`Failed to remove subcategory: ${error.message || 'Please try again.'}`)
+        return
+      }
+
+      // Update local state
+      setBusinessSubcategories(prev => prev.filter(bs => bs.subcategory_id !== subcategoryId))
+      setSuccess('Subcategory removed successfully!')
+    } catch (error: any) {
+      console.error('Error removing subcategory:', error)
+      setError(`An unexpected error occurred: ${error.message || 'Please try again.'}`)
+    }
+  }
+
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }))
+  }
+
+  const getSubcategoriesForCategory = (categoryId: string) => {
+    return subcategories.filter(sub => sub.category_id === categoryId)
+  }
+
+  const getSubcategoriesForBusiness = () => {
+    return businessSubcategories.map(bs => {
+      return subcategories.find(s => s.id === bs.subcategory_id)
+    }).filter(Boolean) as Subcategory[]
   }
 
   const handleSaveChanges = async (e: React.FormEvent) => {
@@ -342,8 +490,10 @@ export default function BusinessProfile() {
                   
                   <div>
                     <Label htmlFor="categoryId" className="text-sm font-medium">
-                      Category
+                      Categories & Subcategories
                     </Label>
+                    
+                    {/* Category Selection */}
                     <div className="flex gap-2 mt-2">
                       <Select onValueChange={handleCategoryChange} value={formData.categoryId}>
                         <SelectTrigger className="flex-1">
@@ -365,24 +515,101 @@ export default function BusinessProfile() {
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
+                    
+                    {/* Selected Categories */}
                     {businessCategories.length > 0 && (
                       <div className="mt-3">
                         <p className="text-xs text-muted-foreground mb-2">Selected categories:</p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="space-y-2">
                           {businessCategories.map((bc) => {
                             const category = categories.find(c => c.id === bc.category_id)
-                            return category ? (
-                              <Badge key={bc.category_id} variant="secondary" className="flex items-center gap-1">
-                                {category.name}
-                                <button 
-                                  type="button"
-                                  onClick={() => handleRemoveCategory(bc.category_id)}
-                                  className="hover:bg-secondary-foreground/10 rounded-full p-0.5"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </Badge>
-                            ) : null
+                            if (!category) return null
+                            
+                            const categorySubcategories = getSubcategoriesForCategory(category.id)
+                            const isExpanded = expandedCategories[category.id] || false
+                            
+                            return (
+                              <div key={bc.category_id} className="border rounded-md">
+                                <div className="flex items-center justify-between p-2 bg-muted/50">
+                                  <Badge variant="secondary" className="flex items-center gap-1">
+                                    {category.name}
+                                    <button 
+                                      type="button"
+                                      onClick={() => handleRemoveCategory(bc.category_id)}
+                                      className="hover:bg-secondary-foreground/10 rounded-full p-0.5"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </Badge>
+                                  
+                                  {categorySubcategories.length > 0 && (
+                                    <Button 
+                                      type="button"
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => toggleCategoryExpansion(category.id)}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      {isExpanded ? 
+                                        <ChevronDown className="w-4 h-4" /> : 
+                                        <ChevronRight className="w-4 h-4" />
+                                      }
+                                    </Button>
+                                  )}
+                                </div>
+                                
+                                {/* Subcategory selection for this category */}
+                                {isExpanded && categorySubcategories.length > 0 && (
+                                  <div className="p-2 border-t">
+                                    <div className="flex gap-2 mb-2">
+                                      <Select onValueChange={handleSubcategoryChange} value={formData.subcategoryId}>
+                                        <SelectTrigger className="flex-1">
+                                          <SelectValue placeholder="Select a subcategory" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {categorySubcategories.map((subcategory) => (
+                                            <SelectItem key={subcategory.id} value={subcategory.id}>
+                                              {subcategory.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <Button 
+                                        type="button" 
+                                        onClick={handleAddSubcategory}
+                                        disabled={!formData.subcategoryId}
+                                        size="sm"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                    
+                                    {/* Selected subcategories for this category */}
+                                    {(() => {
+                                      const categoryBusinessSubcategories = getSubcategoriesForBusiness()
+                                        .filter(sub => sub.category_id === category.id)
+                                      
+                                      return categoryBusinessSubcategories.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                          {categoryBusinessSubcategories.map((sub) => (
+                                            <Badge key={sub.id} variant="outline" className="flex items-center gap-1 text-xs">
+                                              {sub.name}
+                                              <button 
+                                                type="button"
+                                                onClick={() => handleRemoveSubcategory(sub.id)}
+                                                className="hover:bg-secondary-foreground/10 rounded-full p-0.5"
+                                              >
+                                                <X className="w-2 h-2" />
+                                              </button>
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      ) : null
+                                    })()}
+                                  </div>
+                                )}
+                              </div>
+                            )
                           })}
                         </div>
                       </div>

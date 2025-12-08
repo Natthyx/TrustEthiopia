@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button"
 export function ModeToggle() {
   const { theme, setTheme } = useTheme()
 
+  // Set default theme to light if not set
+  if (theme === "system" || theme === undefined) {
+    setTheme("light")
+  }
+
   return (
     <Button
       variant="ghost"

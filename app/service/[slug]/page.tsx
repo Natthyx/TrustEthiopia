@@ -6,11 +6,15 @@ import { RatingStars } from "@/components/rating-stars"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Phone, Globe, Clock, ChevronDown } from "lucide-react"
 import Image from "next/image"
+import { useBannedUserCheck } from "@/hooks/useBannedUserCheck"
 
 export default function ServiceDetailPage() {
+  // Check if user is banned (for public pages, we don't redirect immediately)
+  useBannedUserCheck('public', false)
+
   return (
     <>
-      <Navbar role="guest" />
+      <Navbar />
       <main className="min-h-screen">
         {/* Hero & Images */}
         <section className="bg-muted">
@@ -48,123 +52,130 @@ export default function ServiceDetailPage() {
                       <h1 className="text-3xl font-bold">Excellence Healthcare Center</h1>
                       <div className="flex items-center gap-4 mt-3">
                         <RatingStars rating={4.8} totalReviews={1243} />
-                        <Badge variant="outline">Verified Business</Badge>
+                        <Badge variant="secondary">Healthcare</Badge>
                       </div>
                     </div>
+                    <Button size="lg">Write a Review</Button>
                   </div>
+                  
                   <p className="text-muted-foreground mt-4">
-                    A leading healthcare provider with state-of-the-art facilities and compassionate medical
-                    professionals dedicated to your wellness.
+                    Excellence Healthcare Center is dedicated to providing top-quality medical care with compassion and expertise. 
+                    Our team of experienced professionals is committed to your health and well-being.
                   </p>
                 </div>
 
-                {/* Info Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {[
-                    { icon: MapPin, label: "Address", value: "123 Medical Blvd, NY 10001" },
-                    { icon: Phone, label: "Phone", value: "+1 (555) 123-4567" },
-                    { icon: Globe, label: "Website", value: "excellencehc.com" },
-                    { icon: Clock, label: "Hours", value: "8:00 AM - 8:00 PM" },
-                  ].map((info, idx) => (
-                    <Card key={idx} className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <info.icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">{info.label}</p>
-                          <p className="text-sm font-medium">{info.value}</p>
-                        </div>
+                {/* Contact Info */}
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Address</p>
+                        <p className="text-sm text-muted-foreground">123 Medical Plaza, Suite 100<br />New York, NY 10001</p>
                       </div>
-                    </Card>
-                  ))}
-                </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Phone</p>
+                        <p className="text-sm text-muted-foreground">(555) 123-4567</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Website</p>
+                        <p className="text-sm text-muted-foreground">www.excellencehc.com</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Hours</p>
+                        <p className="text-sm text-muted-foreground">Mon-Fri: 8AM-6PM<br />Sat: 9AM-2PM</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
 
-                {/* Reviews */}
+                {/* Reviews Section */}
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">Reviews</h2>
-                    <Button variant="outline" className="gap-2 bg-transparent">
-                      Sort <ChevronDown className="w-4 h-4" />
+                    <h2 className="text-2xl font-bold">Customer Reviews</h2>
+                    <Button variant="outline" className="gap-2">
+                      Sort by <ChevronDown className="w-4 h-4" />
                     </Button>
                   </div>
+
                   <div className="space-y-6">
-                    <ReviewCard
-                      author="Sarah Mitchell"
-                      avatar="/diverse-group.png"
-                      rating={5}
-                      title="Exceptional Care and Professional Staff"
-                      content="I had an excellent experience at Excellence Healthcare. The staff was incredibly professional and caring. The facility is clean and modern. Highly recommended!"
-                      date="2 weeks ago"
-                      verified
-                      likes={124}
-                      replies={[
-                        {
-                          author: "Excellence Healthcare",
-                          content: "Thank you for your kind words! We are committed to providing the best care.",
-                          date: "1 week ago",
-                        },
-                      ]}
-                    />
-                    <ReviewCard
-                      author="John Davis"
-                      avatar="/person-male.png"
-                      rating={4}
-                      title="Great Service, Reasonable Wait Time"
-                      content="Good experience overall. The doctors were knowledgeable and took time to explain everything. Could improve the check-in process."
-                      date="1 month ago"
-                      verified
-                      likes={45}
-                    />
+                    {[1, 2, 3].map((i) => (
+                      <ReviewCard
+                        key={i}
+                        author={`Customer ${i}`}
+                        rating={5}
+                        title="Outstanding Service"
+                        content="The staff at Excellence Healthcare Center is incredibly professional and caring. 
+                        I received excellent treatment and would highly recommend them to anyone."
+                        date="2 days ago"
+                        verified
+                        likes={24}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-8 text-center">
+                    <Button variant="outline">Load More Reviews</Button>
                   </div>
                 </div>
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <Card className="p-6">
-                  <h3 className="font-semibold mb-4">Rating Summary</h3>
-                  <div className="space-y-3">
-                    {[
-                      { stars: 5, count: 980, percentage: 79 },
-                      { stars: 4, count: 186, percentage: 15 },
-                      { stars: 3, count: 52, percentage: 4 },
-                      { stars: 2, count: 20, percentage: 2 },
-                      { stars: 1, count: 5, percentage: 0 },
-                    ].map((row) => (
-                      <div key={row.stars} className="flex items-center gap-3">
-                        <span className="text-sm font-medium w-3">{row.stars}</span>
-                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full bg-yellow-400 transition-all"
-                            style={{ width: `${row.percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-muted-foreground w-12 text-right">{row.count}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <h3 className="font-semibold mb-4">Business Hours</h3>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between">
+                      <span>Monday</span>
+                      <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Tuesday</span>
+                      <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Wednesday</span>
+                      <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Thursday</span>
+                      <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Friday</span>
+                      <span>8:00 AM - 6:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Saturday</span>
+                      <span>9:00 AM - 2:00 PM</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Sunday</span>
+                      <span>Closed</span>
+                    </li>
+                  </ul>
                 </Card>
 
-                <Button className="w-full" size="lg">
-                  Write a Review
-                </Button>
-
                 <Card className="p-6">
-                  <h3 className="font-semibold mb-3">Business Highlights</h3>
-                  <ul className="space-y-2 text-sm">
-                    {[
-                      "24/7 Emergency Service",
-                      "Board Certified Doctors",
-                      "Modern Equipment",
-                      "Insurance Accepted",
-                    ].map((item) => (
-                      <li key={item} className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <h3 className="font-semibold mb-4">Location</h3>
+                  <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">
+                    <Image 
+                      src="/map-placeholder.png" 
+                      alt="Location map" 
+                      fill 
+                      className="object-cover"
+                    />
+                  </div>
                 </Card>
               </div>
             </div>

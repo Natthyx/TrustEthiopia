@@ -17,6 +17,7 @@ import {
   Edit3,
   TrendingUp
 } from 'lucide-react'
+import { useBannedUserCheck } from '@/hooks/useBannedUserCheck'
 
 interface ProfileData {
   id: string
@@ -37,6 +38,9 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+
+  // Check if user is banned
+  useBannedUserCheck('user')
 
   useEffect(() => {
     const fetchUserProfile = async () => {

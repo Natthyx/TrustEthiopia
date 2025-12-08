@@ -28,6 +28,8 @@ export default function LoginPage() {
       setSuccess("Account created! Please check your email and confirm your account before logging in.")
     } else if (urlMessage === "email_verified") {
       setSuccess("Your email has been verified. Please log in.")
+    } else if (urlMessage === "banned") {
+      setError("Your account has been banned. Please contact support for assistance.")
     }
 
     if (urlError === "invalid_token") {
