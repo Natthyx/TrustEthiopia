@@ -122,7 +122,7 @@ export default function AdminBusinessesPage() {
       }
 
       const allDocuments = await response.json()
-      // Filter documents for this business
+      // Filter documents for this business by comparing business IDs
       const businessDocs = allDocuments.filter((doc: any) => doc.business?.id === businessId)
       
       return businessDocs || []

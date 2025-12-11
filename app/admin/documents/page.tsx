@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, CheckCircle, XCircle, FileText } from "lucide-react"
+import { Search, CheckCircle, XCircle, FileText, Eye, Download } from "lucide-react"
 
 interface Document {
   id: string
@@ -183,6 +183,29 @@ export default function AdminDocumentsPage() {
     }
   }
 
+  // Function to open document in new tab
+  const handleViewDocument = (documentUrl: string) => {
+    window.open(documentUrl, '_blank');
+  };
+
+  // Function to download document
+  const handleDownloadDocument = async (documentUrl: string, documentName: string | null) => {
+    try {
+      // Create a temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = documentUrl;
+      link.download = documentName || 'document';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      // Fallback: open in new tab if download fails
+      window.open(documentUrl, '_blank');
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -215,17 +238,17 @@ export default function AdminDocumentsPage() {
           </div>
 
           {/* Search */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search documents or businesses..." 
-                className="pl-10" 
+          <Card className="p-4 mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search documents or businesses..."
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          </div>
+          </Card>
 
           {/* Table */}
           <Card>
@@ -270,6 +293,26 @@ export default function AdminDocumentsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
+                          {/* View Document Button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewDocument(doc.document_url)}
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          
+                          {/* Download Document Button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadDocument(doc.document_url, doc.document_name)}
+                            title="Download Document"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          
                           {doc.status === "pending" && (
                             <Button
                               size="sm"

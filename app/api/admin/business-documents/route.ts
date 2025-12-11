@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       document_url,
       uploaded_at,
       status,
-      business:businesses(business_name)
+      business:businesses(id, business_name)
     `)
     .order('uploaded_at', { ascending: false });
 
