@@ -166,7 +166,7 @@ export default function BusinessDashboard() {
             const chartData = Object.entries(monthlyViews)
               .map(([month, views]) => ({ month, views }))
               .sort((a, b) => {
-                // Sort by month order, but show newest first
+                // Sort by correct chronological order (oldest to newest)
                 const now = new Date()
                 const aIndex = monthOrder.indexOf(a.month)
                 const bIndex = monthOrder.indexOf(b.month)
@@ -176,7 +176,7 @@ export default function BusinessDashboard() {
                 const aAdjusted = aIndex <= currentIndex ? aIndex + 12 : aIndex
                 const bAdjusted = bIndex <= currentIndex ? bIndex + 12 : bIndex
                 
-                return bAdjusted - aAdjusted
+                return aAdjusted - bAdjusted
               })
 
             setViewsData(chartData)
