@@ -28,12 +28,12 @@ interface Profile {
 
 export function Navbar() {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)  // ← NEW: Track auth loading state
   const [isOpen, setIsOpen] = useState(false)
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  // Check if there's a banned message in the URL
   const isBannedMessage = searchParams.get('message') === 'banned'
 
   useEffect(() => {
@@ -42,8 +42,7 @@ export function Navbar() {
         const { data: { user } } = await supabase.auth.getUser()
         
         if (user) {
-          // Fetch profile data from the profiles table including banned status
-          const { data: profile, error } = await supabase
+          const { data: profileData, error } = await supabase
             .from('profiles')
             .select('id, name, email, role, is_banned')
             .eq('id', user.id)
@@ -52,8 +51,7 @@ export function Navbar() {
           if (error) {
             console.error('Error fetching profile:', error)
           } else {
-            // If user is banned, sign them out immediately
-            if (profile.is_banned) {
+            if (profileData.is_banned) {
               await supabase.auth.signOut()
               setProfile(null)
               router.push('/?message=banned')
@@ -61,54 +59,52 @@ export function Navbar() {
             }
             
             setProfile({
-              id: profile.id,
-              name: profile.name,
-              email: profile.email,
-              role: profile.role,
-              avatar_url: null, // We don't have avatar_url in the schema
-              is_banned: profile.is_banned
+              id: profileData.id,
+              name: profileData.name,
+              email: profileData.email,
+              role: profileData.role,
+              avatar_url: null,
+              is_banned: profileData.is_banned
             })
           }
         }
       } catch (error) {
         console.error('Error:', error)
+      } finally {
+        setLoading(false)  // ← Always stop loading, even on error
       }
     }
 
     fetchProfile()
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile()
       } else {
         setProfile(null)
+        setLoading(false)
       }
     })
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [router])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setProfile(null)
-    // Redirect to home page after logout
     router.push('/')
   }
 
-  // Define navigation items
   const navItems = [
     { href: '/categories', label: 'Categories' },
     { href: '/blog', label: 'Blog' },
     { href: '/explore', label: 'Explore' },
   ]
 
-  // Define role-specific links
   const getRoleLink = () => {
     if (!profile) return null
-    
     switch (profile.role) {
       case 'business':
         return { href: '/business/dashboard', label: 'Dashboard' }
@@ -121,9 +117,51 @@ export function Navbar() {
 
   const roleLink = getRoleLink()
 
+  // While loading, show a clean skeleton (no login buttons)
+  if (loading) {
+    return (
+      <>
+        {(profile?.is_banned || isBannedMessage) && (
+          <div className="bg-red-600 text-white py-2 px-4 text-center text-sm font-medium">
+            <div className="container-app flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Your account has been banned. Please contact support for assistance.</span>
+            </div>
+          </div>
+        )}
+
+        <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+          <div className="container-app">
+            <div className="flex items-center justify-between h-16">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
+                <span className="font-bold text-lg">ReviewTrust</span>
+              </Link>
+
+              {/* Desktop: Show placeholder avatar */}
+              <div className="hidden md:flex items-center gap-4">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Search className="w-4 h-4" />
+                </Button>
+                <ModeToggle />
+                <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+              </div>
+
+              {/* Mobile: Show menu icon only */}
+              <div className="md:hidden">
+                <Button variant="ghost" size="sm">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </>
+    )
+  }
+
   return (
     <>
-      {/* Banned User Banner */}
       {(profile?.is_banned || isBannedMessage) && (
         <div className="bg-red-600 text-white py-2 px-4 text-center text-sm font-medium">
           <div className="container-app flex items-center justify-center gap-2">
@@ -136,13 +174,11 @@ export function Navbar() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container-app">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
               <span className="font-bold text-lg">ReviewTrust</span>
             </Link>
 
-            {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
               {navItems.map((item) => (
                 <Link
@@ -155,7 +191,6 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Right Section */}
             <div className="hidden md:flex items-center gap-4">
               <Button variant="ghost" size="sm" className="gap-2">
                 <Search className="w-4 h-4" />
@@ -179,7 +214,7 @@ export function Navbar() {
                   {roleLink && (
                     <Button variant="outline" size="sm" asChild>
                       <Link href={roleLink.href}>{roleLink.label}</Link>
-                  </Button>
+                    </Button>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -202,7 +237,7 @@ export function Navbar() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
-                        className="gap-2 cursor-pointer"
+                        className="gap-2 cursor-pointer text-red-600"
                         onClick={handleSignOut}
                       >
                         <LogOut className="w-4 h-4" />
@@ -214,7 +249,6 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="sm">
