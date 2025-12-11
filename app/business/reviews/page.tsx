@@ -16,6 +16,7 @@ interface Review {
   rating: number
   comment: string | null
   created_at: string | null
+  is_verified: boolean | null
   reviewer: {
     name: string | null
   } | null
@@ -93,6 +94,7 @@ export default function BusinessReviews() {
             rating,
             comment,
             created_at,
+            is_verified,
             likes_count,
             reviewer:profiles(name),
             review_comments(
@@ -347,7 +349,7 @@ export default function BusinessReviews() {
                   title={`Rating: ${review.rating} stars`}
                   content={review.comment || "No comment provided"}
                   date={review.created_at ? new Date(review.created_at).toLocaleDateString() : "Unknown date"}
-                  verified
+                  verified={review.is_verified || false}
                   likes={review.likes_count || 0}
                   replies={(review.review_comments || []).map((comment: any) => ({
                     author: comment.commenter?.name || "Business Owner",

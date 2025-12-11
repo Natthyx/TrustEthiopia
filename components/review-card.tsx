@@ -66,7 +66,11 @@ export function ReviewCard({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">{author}</h3>
-                  {verified && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>}
+                  {verified ? (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>
+                  ) : (
+                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Not Verified</span>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">{date}</p>
               </div>

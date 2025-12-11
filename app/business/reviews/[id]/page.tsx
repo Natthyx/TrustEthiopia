@@ -18,6 +18,7 @@ interface Review {
   rating: number
   comment: string | null
   created_at: string | null
+  is_verified: boolean | null
   reviewer: {
     name: string | null
   } | null
@@ -97,6 +98,7 @@ export default function ReviewReplyPage() {
             rating,
             comment,
             created_at,
+            is_verified,
             likes_count,
             reviewer:profiles(name)
           `)
@@ -242,7 +244,11 @@ export default function ReviewReplyPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold">{review?.reviewer?.name || "Anonymous"}</h3>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>
+                      {review?.is_verified ? (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>
+                      ) : (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Not Verified</span>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">
                       {review?.created_at ? new Date(review.created_at).toLocaleDateString() : "Unknown date"}

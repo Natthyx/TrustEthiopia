@@ -40,18 +40,19 @@ export async function GET(req: Request) {
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // Fetch recent reviews with business and user info
+    // Fetch all reviews with business and user info
     const { data: reviews, error } = await supabaseAdmin
       .from("reviews")
       .select(`
         id,
         rating,
+        comment,
+        is_verified,
         created_at,
         businesses(business_name),
         profiles(name)
       `)
-      .order("created_at", { ascending: false })
-      .limit(10);
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
@@ -61,7 +62,8 @@ export async function GET(req: Request) {
       business_name: review.businesses?.business_name || "Unknown Business",
       reviewer_name: review.profiles?.name || "Anonymous",
       rating: review.rating,
-      status: "Published",
+      comment: review.comment,
+      is_verified: review.is_verified,
       created_at: review.created_at
     }));
 

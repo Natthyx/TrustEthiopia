@@ -7,7 +7,7 @@ import Link from "next/link"
 export default function AboutPage() {
   return (
     <>
-      <Navbar role="guest" />
+      <Navbar />
       <main className="min-h-screen">
         {/* Hero */}
         <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
