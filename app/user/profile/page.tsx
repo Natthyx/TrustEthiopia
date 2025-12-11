@@ -20,6 +20,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { useBannedUserCheck } from '@/hooks/useBannedUserCheck'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface ProfileData {
   id: string
@@ -27,6 +28,7 @@ interface ProfileData {
   email: string | null
   role: string | null
   created_at: string | null
+  profile_image_url: string | null
 }
 
 interface AnalyticsData {
@@ -68,7 +70,7 @@ export default function UserProfilePage() {
         // Fetch profile data
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role, created_at')
+          .select('id, name, email, role, created_at, profile_image_url')
           .eq('id', user.id)
           .single()
 
@@ -187,9 +189,12 @@ export default function UserProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-8 h-8 text-primary" />
-                    </div>
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={profile?.profile_image_url || undefined} alt={profile?.name || "User"} />
+                      <AvatarFallback className="text-xl">
+                        {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="font-semibold">{profile?.name || 'User'}</h3>
                       <Badge variant="secondary" className="mt-1 capitalize">

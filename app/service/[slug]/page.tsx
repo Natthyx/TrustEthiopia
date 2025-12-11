@@ -87,7 +87,7 @@ async function getBusinessData(slug: string): Promise<{business: Business | null
         comment,
         created_at,
         is_verified,
-        profiles(name)
+        profiles(name, profile_image_url)
       `)
       .eq('reviewee_id', slug)
       .order('created_at', { ascending: false })
@@ -108,6 +108,7 @@ async function getBusinessData(slug: string): Promise<{business: Business | null
           rating: review.rating,
           comment: review.comment,
           reviewer_name: review.profiles?.name || 'Anonymous User',
+          reviewer_avatar: review.profiles?.profile_image_url || null,
           created_at: review.created_at || null,
           is_verified: review.is_verified || false,
           likes: 0,  // Initial likes from server (will be updated client-side)

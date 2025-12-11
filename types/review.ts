@@ -14,6 +14,7 @@ export interface Review {
   rating: number
   comment: string | null
   reviewer_name: string | null
+  reviewer_avatar?: string | null
   created_at: string | null
   is_verified: boolean | null
   likes: number

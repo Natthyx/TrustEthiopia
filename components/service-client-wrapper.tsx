@@ -528,6 +528,7 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                       <ReviewCard
                         key={review.id}
                         author={review.reviewer_name || 'Anonymous User'}
+                        avatar={review.reviewer_avatar || undefined}
                         rating={review.rating}
                         title={review.comment ? review.comment.substring(0, 60) + (review.comment.length > 60 ? '...' : '') : 'No comment'}
                         content={review.comment || ''}
