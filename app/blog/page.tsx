@@ -8,57 +8,68 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, User, ArrowRight, Search } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
+interface BlogPost {
+  id: string
+  title: string
+  excerpt: string
+  author: string
+  date: string
+  image: string
+  readTime: string
+}
 
 export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [featuredPost, setFeaturedPost] = useState<BlogPost | null>(null)
 
-  const blogPosts = [
-    {
-      id: "1",
-      title: "How to Choose the Right Service Provider",
-      excerpt: "Learn what factors to consider when selecting a service for your needs.",
-      category: "Guide",
-      author: "Sarah Chen",
-      date: "2 days ago",
-      image: "/placeholder.svg?key=blog1",
-      readTime: "5 min read",
-    },
-    {
-      id: "2",
-      title: "The Importance of Customer Reviews",
-      excerpt: "Discover why honest reviews matter and how they help businesses improve.",
-      category: "Insights",
-      author: "John Smith",
-      date: "5 days ago",
-      image: "/placeholder.svg?key=blog2",
-      readTime: "4 min read",
-    },
-    {
-      id: "3",
-      title: "Tips for Writing Helpful Reviews",
-      excerpt: "Master the art of writing reviews that truly help other users.",
-      category: "Tutorial",
-      author: "Mike Johnson",
-      date: "1 week ago",
-      image: "/placeholder.svg?key=blog3",
-      readTime: "6 min read",
-    },
-    {
-      id: "4",
-      title: "Verifying Your Business: A Complete Guide",
-      excerpt: "Step-by-step instructions to verify and claim your business profile.",
-      category: "Guide",
-      author: "Emma Williams",
-      date: "1 week ago",
-      image: "/placeholder.svg?key=blog4",
-      readTime: "8 min read",
-    },
-  ]
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        const response = await fetch('/api/blog')
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog posts')
+        }
+        
+        const data = await response.json()
+        
+        // Set the first post as featured (in a real implementation, this would be determined by admin)
+        if (data.length > 0) {
+          setFeaturedPost(data[0])
+          setBlogPosts(data.slice(1)) // All posts except the first one
+        } else {
+          setBlogPosts(data)
+        }
+        
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching blog posts:', error)
+      }
+    }
+
+    fetchBlogPosts()
+  }, [])
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading blog posts...</p>
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
-      <Navbar role="guest" />
+      <Navbar />
       <main className="min-h-screen">
         {/* Header */}
         <section className="py-12 px-4 bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
@@ -88,37 +99,38 @@ export default function BlogPage() {
         {/* Featured Post */}
         <section className="py-12 px-4">
           <div className="container-app">
-            <Card className="overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                <div className="relative h-64 md:h-80 rounded-lg overflow-hidden">
-                  <Image src="/placeholder.svg?key=featured_blog" alt="Featured" fill className="object-cover" />
-                </div>
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <Badge className="mb-4">Featured</Badge>
-                    <h2 className="text-2xl font-bold mb-3">How to Choose the Right Service Provider</h2>
-                    <p className="text-muted-foreground mb-4">
-                      Learn what factors to consider when selecting a service for your needs. From price to quality, we
-                      break down everything you need to know.
-                    </p>
+            {featuredPost && (
+              <Card className="overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                  <div className="relative h-64 md:h-80 rounded-lg overflow-hidden">
+                    <Image src={featuredPost.image} alt="Featured" fill className="object-cover" />
                   </div>
-                  <div className="flex items-center gap-4 pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="w-4 h-4" />
-                      Sarah Chen
+                  <div className="flex flex-col justify-between">
+                    <div>
+                      <Badge className="mb-4">Featured</Badge>
+                      <h2 className="text-2xl font-bold mb-3">{featuredPost.title}</h2>
+                      <p className="text-muted-foreground mb-4">
+                        {featuredPost.excerpt}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />2 days ago
+                    <div className="flex items-center gap-4 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <User className="w-4 h-4" />
+                        {featuredPost.author}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />{featuredPost.date}
+                      </div>
+                      <Button asChild className="ml-auto gap-2">
+                        <Link href={`/blog/${featuredPost.id}`}>
+                          Read More <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </Button>
                     </div>
-                    <Button asChild className="ml-auto gap-2">
-                      <Link href="/blog/1">
-                        Read More <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         </section>
 
@@ -139,9 +151,6 @@ export default function BlogPage() {
                       />
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
-                      <Badge variant="outline" className="w-fit mb-2">
-                        {post.category}
-                      </Badge>
                       <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border">

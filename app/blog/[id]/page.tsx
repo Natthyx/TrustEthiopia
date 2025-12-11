@@ -5,19 +5,61 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, User, Clock, Share2, Heart } from "lucide-react"
 import Image from "next/image"
+import { notFound } from "next/navigation"
 
-export default function BlogPostPage() {
+interface BlogPost {
+  id: string
+  title: string
+  content: string
+  author: string
+  date: string
+  image: string
+  readTime: string
+}
+
+async function getBlogPost(id: string): Promise<BlogPost | null> {
+  try {
+    // Call the API route to fetch the blog post
+    const response = await fetch(
+      `${process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_SITE_URL : 'http://localhost:3000'}/api/blog/${id}`,
+      { 
+        next: { 
+          revalidate: 60 // Revalidate at most once every 60 seconds
+        } 
+      }
+    )
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching blog post:', error)
+    return null
+  }
+}
+
+export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const blogPost = await getBlogPost(id)
+
+  if (!blogPost) {
+    notFound()
+  }
+
   return (
     <>
-      <Navbar role="guest" />
+      <Navbar />
       <main className="min-h-screen py-12">
         <article className="container-app max-w-3xl">
           {/* Header */}
           <div className="mb-8">
             <Badge className="mb-4">Guide</Badge>
-            <h1 className="text-4xl font-bold mb-4">How to Choose the Right Service Provider</h1>
+            <h1 className="text-4xl font-bold mb-4">{blogPost.title}</h1>
             <p className="text-lg text-muted-foreground">
-              Learn what factors to consider when selecting a service for your needs.
+              {blogPost.content.substring(0, 150) + '...'}
             </p>
           </div>
 
@@ -25,54 +67,25 @@ export default function BlogPostPage() {
           <div className="flex flex-wrap gap-6 mb-8 pb-8 border-b border-border text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              By Sarah Chen
+              By {blogPost.author}
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />2 days ago
+              <Calendar className="w-4 h-4" />{blogPost.date}
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />5 min read
+              <Clock className="w-4 h-4" />{blogPost.readTime}
             </div>
           </div>
 
           {/* Featured Image */}
           <div className="relative h-96 rounded-lg overflow-hidden mb-12">
-            <Image src="/placeholder.svg?key=blog_featured" alt="Article" fill className="object-cover" />
+            <Image src={blogPost.image} alt="Article" fill className="object-cover" />
           </div>
 
           {/* Content */}
           <div className="prose prose-invert max-w-none mb-12">
             <p>
-              Choosing the right service provider is one of the most important decisions you can make. Whether you're
-              looking for healthcare, dining, technology support, or any other service, the process can feel
-              overwhelming. In this comprehensive guide, we'll walk you through the key factors to consider.
-            </p>
-
-            <h2>1. Check Reviews and Ratings</h2>
-            <p>
-              Start by researching what others have said about the service. Look for patterns in reviews rather than
-              focusing on individual opinions. Multiple 4-5 star reviews indicate consistency, while varied ratings
-              suggest potential inconsistency.
-            </p>
-
-            <h2>2. Verify Credentials and Certifications</h2>
-            <p>
-              Ensure the provider has all necessary licenses, certifications, and credentials relevant to their field.
-              Don't hesitate to ask for proof of qualification. Many providers display this information on their
-              verified profiles.
-            </p>
-
-            <h2>3. Compare Pricing</h2>
-            <p>
-              While price shouldn't be your only factor, it's important to understand the market rate. Compare multiple
-              providers to ensure you're getting fair value for the service. Remember that the cheapest option isn't
-              always the best.
-            </p>
-
-            <h2>4. Assess Communication</h2>
-            <p>
-              Notice how quickly the provider responds to inquiries and how clearly they communicate. Good service
-              providers are typically responsive and transparent about their processes and pricing.
+              {blogPost.content}
             </p>
           </div>
 
@@ -81,12 +94,12 @@ export default function BlogPostPage() {
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
                 <AvatarImage src="/placeholder.svg?key=author" />
-                <AvatarFallback>SC</AvatarFallback>
+                <AvatarFallback>{blogPost.author.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold">Sarah Chen</h3>
+                <h3 className="font-semibold">{blogPost.author}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Content writer at ReviewTrust. Passionate about helping users make informed decisions.
+                  Content contributor at ReviewTrust. Sharing insights to help users make informed decisions.
                 </p>
               </div>
             </div>
@@ -94,11 +107,11 @@ export default function BlogPostPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3 mb-12 pb-12 border-b border-border">
-            <Button variant="outline" gap-2 className="gap-2 bg-transparent">
+            <Button variant="outline" className="gap-2 bg-transparent">
               <Heart className="w-4 h-4" />
               Save Article
             </Button>
-            <Button variant="outline" gap-2 className="gap-2 bg-transparent">
+            <Button variant="outline" className="gap-2 bg-transparent">
               <Share2 className="w-4 h-4" />
               Share
             </Button>

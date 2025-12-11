@@ -356,6 +356,7 @@ export type Database = {
           thumbnail_image: string | null
           read_count: number | null
           published: boolean | null
+          status: string | null  // ← ADD THIS LINE
           created_at: string | null
           updated_at: string | null
         }
@@ -367,6 +368,7 @@ export type Database = {
           thumbnail_image?: string | null
           read_count?: number | null
           published?: boolean | null
+          status?: string | null  // ← ADD THIS LINE
           created_at?: string | null
           updated_at?: string | null
         }
@@ -378,6 +380,7 @@ export type Database = {
           thumbnail_image?: string | null
           read_count?: number | null
           published?: boolean | null
+          status?: string | null  // ← ADD THIS LINE
           created_at?: string | null
           updated_at?: string | null
         }
