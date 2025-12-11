@@ -9,9 +9,14 @@ const createPublicClient = () => {
   )
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = createPublicClient()
+    
+    // Get pagination parameters from query string
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '8')
 
     // Fetch statistics from the public stats table
     const { data: statsData, error: statsError } = await supabase
@@ -177,17 +182,47 @@ export async function GET() {
         }
       }) || []
     }
+    
+    // Fetch recent reviews (with pagination)
+    const offset = (page - 1) * limit
+    
+    const { data: reviewsData, error: reviewsDataError, count: totalReviews } = await supabase
+      .from('reviews')
+      .select(`
+        id,
+        rating,
+        comment,
+        created_at,
+        reviewee_id,
+        businesses(business_name),
+        profiles(name)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+    
+    // Log error if there's an issue with recent reviews
+    if (reviewsDataError) {
+      console.error('Error fetching recent reviews:', reviewsDataError)
+    }
+    
+    const recentReviews = reviewsData?.map(review => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.created_at,
+      businessName: review.businesses?.business_name || "Unknown Business",
+      reviewerName: review.profiles?.name || "Anonymous User"
+    })) || []
+    
+    const pagination = {
+      currentPage: page,
+      totalPages: Math.ceil((totalReviews || 0) / limit),
+      totalReviews: totalReviews || 0,
+      hasNext: page < Math.ceil((totalReviews || 0) / limit),
+      hasPrev: page > 1
+    }
 
-    // Log the results for debugging
-    console.log('Landing page data:', {
-      userCount: statsData?.user_count,
-      businessCount: statsData?.business_count,
-      reviewCount: statsData?.review_count,
-      monthlyGrowth,
-      categoriesCount: categories?.length,
-      featuredServicesCount: featuredServices?.length
-    })
-
+    // Return the response with all data
     return NextResponse.json({
       stats: {
         users: statsData?.user_count || 0,
@@ -196,7 +231,9 @@ export async function GET() {
         monthlyGrowth: monthlyGrowth
       },
       categories: categoriesWithCounts,
-      featuredServices: featuredServices
+      featuredServices: featuredServices,
+      recentReviews: recentReviews,
+      pagination: pagination
     })
   } catch (error) {
     console.error('Error fetching landing page data:', error)

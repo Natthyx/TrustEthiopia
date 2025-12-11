@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { CategoryCard } from "@/components/category-card"
 import { ServiceCard } from "@/components/service-card"
-import { Star, TrendingUp, Award, Users } from "lucide-react"
+import { ReviewCardLanding } from "@/components/review-card-landing"
+import { Star, TrendingUp, Award, Users, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 interface Stat {
@@ -33,6 +34,23 @@ interface Service {
   imageUrl: string
 }
 
+interface Review {
+  id: string
+  rating: number
+  comment: string | null
+  businessName: string
+  reviewerName: string
+  createdAt: string
+}
+
+interface Pagination {
+  currentPage: number
+  totalPages: number
+  totalReviews: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
 export default function HomePage() {
   const [stats, setStats] = useState<Stat[]>([
     { icon: Users, label: "Happy Users", value: "0" },
@@ -43,40 +61,65 @@ export default function HomePage() {
   
   const [categories, setCategories] = useState<Category[]>([])
   const [featuredServices, setFeaturedServices] = useState<Service[]>([])
+  const [recentReviews, setRecentReviews] = useState<Review[]>([])
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    totalReviews: 0,
+    hasNext: false,
+    hasPrev: false
+  })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/landing')
-        const data = await response.json()
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch landing page data')
-        }
-        
-        // Format stats with real data
-        setStats([
-          { icon: Users, label: "Happy Users", value: formatNumber(data.stats.users) },
-          { icon: Star, label: "Verified Reviews", value: formatNumber(data.stats.reviews) },
-          { icon: Award, label: "Trusted Businesses", value: formatNumber(data.stats.businesses) },
-          { icon: TrendingUp, label: "Monthly Growth", value: `${data.stats.monthlyGrowth}%` },
-        ])
-        
-        // Set categories
-        setCategories(data.categories)
-        
-        // Set featured services
-        setFeaturedServices(data.featuredServices)
-        
-        setLoading(false)
-      } catch (error) {
-        console.error('Error fetching landing page data:', error)
-        setLoading(false)
+  const fetchLandingData = async (page: number = 1) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/landing?page=${page}`)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch landing page data')
       }
+      
+      // Format stats with real data
+      setStats([
+        { icon: Users, label: "Happy Users", value: formatNumber(data.stats.users) },
+        { icon: Star, label: "Verified Reviews", value: formatNumber(data.stats.reviews) },
+        { icon: Award, label: "Trusted Businesses", value: formatNumber(data.stats.businesses) },
+        { icon: TrendingUp, label: "Monthly Growth", value: `${data.stats.monthlyGrowth}%` },
+      ])
+      
+      // Set categories only on first load
+      if (categories.length === 0) {
+        setCategories(data.categories)
+      }
+      
+      // Set featured services only on first load
+      if (featuredServices.length === 0) {
+        setFeaturedServices(data.featuredServices)
+      }
+      
+      // Set recent reviews
+      setRecentReviews(data.recentReviews || [])
+      
+      // Set pagination
+      setPagination(data.pagination || {
+        currentPage: 1,
+        totalPages: 1,
+        totalReviews: 0,
+        hasNext: false,
+        hasPrev: false
+      })
+      
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching landing page data:', error)
+      setLoading(false)
     }
-    
-    fetchData()
+  }
+
+  useEffect(() => {
+    fetchLandingData()
   }, [])
   
   // Format large numbers (e.g., 1500000 -> 1.5M)
@@ -88,6 +131,18 @@ export default function HomePage() {
       return (num / 1000).toFixed(1) + 'K+'
     }
     return num.toString()
+  }
+
+  const handlePrevPage = () => {
+    if (pagination.hasPrev) {
+      fetchLandingData(pagination.currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (pagination.hasNext) {
+      fetchLandingData(pagination.currentPage + 1)
+    }
   }
 
   return (
@@ -197,6 +252,59 @@ export default function HomePage() {
                 <Link href="/explore">Explore More Services</Link>
               </Button>
             </div>
+          </div>
+        </section>
+
+        {/* Recent Reviews Section */}
+        <section className="py-16 px-4 bg-muted/50">
+          <div className="container-app">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold">Recent Reviews</h2>
+              <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+                See what our community is saying about their latest experiences.
+              </p>
+            </div>
+            
+            {/* Pagination Controls - Top Right */}
+            <div className="flex justify-end mb-4">
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={!pagination.hasPrev || loading}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={!pagination.hasNext || loading}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <Card key={i} className="h-40 animate-pulse bg-muted" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {recentReviews.map((review) => (
+                  <ReviewCardLanding key={review.id} {...review} />
+                ))}
+              </div>
+            )}
+            
+            
           </div>
         </section>
 
