@@ -18,6 +18,7 @@ export type Database = {
           is_banned: boolean | null
           created_at: string | null
           updated_at: string | null
+          profile_image_url: string | null
         }
         Insert: {
           id: string
@@ -27,6 +28,7 @@ export type Database = {
           is_banned?: boolean | null
           created_at?: string | null
           updated_at?: string | null
+          profile_image_url?: string | null
         }
         Update: {
           id?: string
@@ -36,6 +38,7 @@ export type Database = {
           is_banned?: boolean | null
           created_at?: string | null
           updated_at?: string | null
+          profile_image_url?: string | null
         }
         Relationships: [
           {

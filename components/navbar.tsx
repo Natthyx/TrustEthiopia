@@ -22,7 +22,7 @@ interface Profile {
   name: string | null
   email: string | null
   role: string | null
-  avatar_url: string | null
+  profile_image_url: string | null
   is_banned: boolean | null
 }
 
@@ -44,7 +44,7 @@ export function Navbar() {
         if (user) {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('id, name, email, role, is_banned')
+            .select('id, name, email, role, is_banned, profile_image_url')
             .eq('id', user.id)
             .single()
           
@@ -63,7 +63,7 @@ export function Navbar() {
               name: profileData.name,
               email: profileData.email,
               role: profileData.role,
-              avatar_url: null,
+              profile_image_url: profileData.profile_image_url,
               is_banned: profileData.is_banned
             })
           }
@@ -218,8 +218,13 @@ export function Navbar() {
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="rounded-full">
-                        <div className="w-6 h-6 rounded-full bg-primary/20" />
+                      <Button variant="ghost" size="sm" className="rounded-full p-0">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={profile.profile_image_url || undefined} alt={profile.name || "User"} />
+                          <AvatarFallback>
+                            {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+                          </AvatarFallback>
+                        </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">

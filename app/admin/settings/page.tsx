@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import ProfileImageUpload from "@/components/profile-image-upload"
 
 interface AdminProfile {
   id: string
   name: string | null
   email: string | null
+  profile_image_url: string | null
 }
 
 export default function AdminSettingsPage() {
@@ -42,7 +44,7 @@ export default function AdminSettingsPage() {
         // Check if user is admin
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role')
+          .select('id, name, email, role, profile_image_url')
           .eq('id', user.id)
           .single()
 
@@ -54,7 +56,8 @@ export default function AdminSettingsPage() {
         setProfile({
           id: profileData.id,
           name: profileData.name,
-          email: profileData.email
+          email: profileData.email,
+          profile_image_url: profileData.profile_image_url
         })
 
         setLoading(false)
@@ -137,6 +140,10 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleImageUpdate = (imageUrl: string | null) => {
+    setProfile(prev => prev ? { ...prev, profile_image_url: imageUrl } : null)
+  }
+
   if (loading) {
     return (
       <>
@@ -172,6 +179,13 @@ export default function AdminSettingsPage() {
             {/* Profile Information */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+              <div className="flex flex-col items-center mb-6">
+                <ProfileImageUpload 
+                  currentImageUrl={profile?.profile_image_url}
+                  onImageUpdate={handleImageUpdate}
+                  size="lg"
+                />
+              </div>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Name</Label>

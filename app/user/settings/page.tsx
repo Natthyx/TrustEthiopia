@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import ProfileImageUpload from '@/components/profile-image-upload'
 
 interface ProfileData {
   id: string
   name: string | null
   email: string | null
   role: string | null
+  profile_image_url: string | null
 }
 
 export default function UserSettingsPage() {
@@ -41,7 +43,7 @@ export default function UserSettingsPage() {
         // Check if user is banned by fetching profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role, is_banned')
+          .select('id, name, email, role, is_banned, profile_image_url')
           .eq('id', user.id)
           .single()
 
@@ -131,6 +133,10 @@ export default function UserSettingsPage() {
     }))
   }
 
+  const handleImageUpdate = (imageUrl: string | null) => {
+    setProfile(prev => prev ? { ...prev, profile_image_url: imageUrl } : null)
+  }
+
   if (loading) {
     return (
       <>
@@ -166,6 +172,15 @@ export default function UserSettingsPage() {
                   Profile updated successfully!
                 </div>
               )}
+              
+              <div className="flex flex-col items-center mb-6">
+                <ProfileImageUpload 
+                  currentImageUrl={profile?.profile_image_url}
+                  onImageUpdate={handleImageUpdate}
+                  size="lg"
+                />
+              </div>
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>

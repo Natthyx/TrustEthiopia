@@ -9,13 +9,14 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import ProfileImageUpload from "@/components/profile-image-upload"
 
 interface OwnerProfile {
   id: string
   name: string | null
   email: string | null
+  profile_image_url: string | null
 }
 
 interface Review {
@@ -53,7 +54,7 @@ export default function BusinessSettingsPage() {
         // Check if user is business
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role')
+          .select('id, name, email, role, profile_image_url')
           .eq('id', user.id)
           .single()
 
@@ -65,7 +66,8 @@ export default function BusinessSettingsPage() {
         setProfile({
           id: profileData.id,
           name: profileData.name,
-          email: profileData.email
+          email: profileData.email,
+          profile_image_url: profileData.profile_image_url
         })
 
         // Fetch reviews written by this business owner
@@ -173,6 +175,10 @@ export default function BusinessSettingsPage() {
     }
   }
 
+  const handleImageUpdate = (imageUrl: string | null) => {
+    setProfile(prev => prev ? { ...prev, profile_image_url: imageUrl } : null)
+  }
+
   if (loading) {
     return (
       <>
@@ -208,6 +214,13 @@ export default function BusinessSettingsPage() {
             {/* Profile Information */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+              <div className="flex flex-col items-center mb-6">
+                <ProfileImageUpload 
+                  currentImageUrl={profile?.profile_image_url}
+                  onImageUpdate={handleImageUpdate}
+                  size="lg"
+                />
+              </div>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Name</Label>
