@@ -16,6 +16,7 @@ interface WriteReviewInlineProps {
     rating: number
     comment: string | null
     reviewer_name: string
+    reviewer_avatar?: string | null
     created_at: string
     is_verified: boolean
     likes: number
@@ -58,10 +59,11 @@ export function WriteReviewInline({
 
       // Fetch user's profile name for optimistic update
       let reviewerName = 'Anonymous User'
+      let reviewerAvatar = null
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('name')
+          .select('name, profile_image_url')
           .eq('id', user.id)
           .single()
 
@@ -71,6 +73,8 @@ export function WriteReviewInline({
           // Fallback to part of email if name not set
           reviewerName = user.email.split('@')[0]
         }
+        
+        reviewerAvatar = profile?.profile_image_url || null
       }
 
       // Insert review
@@ -108,6 +112,7 @@ export function WriteReviewInline({
         rating,
         comment: content || null,
         reviewer_name: reviewerName,
+        reviewer_avatar: reviewerAvatar,
         created_at: new Date().toISOString(),
         is_verified: false,
         likes: 0,

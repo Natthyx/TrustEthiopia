@@ -58,7 +58,7 @@ export function ReviewCard({
       <Card className="p-6">
         <div className="flex gap-4">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={avatar || "/placeholder.svg"} />
+            <AvatarImage src={avatar} />
             <AvatarFallback>{author.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">

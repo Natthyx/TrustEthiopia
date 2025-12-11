@@ -122,7 +122,7 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
           created_at,
           is_verified,
           likes_count,
-          profiles(name),
+          profiles(name, profile_image_url),
           review_comments(
             id,
             comment,
@@ -145,6 +145,7 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
         rating: review.rating,
         comment: review.comment,
         reviewer_name: review.profiles?.name || 'Anonymous User',
+        reviewer_avatar: review.profiles?.profile_image_url || null,
         created_at: review.created_at,
         is_verified: review.is_verified || false,
         likes: review.likes_count ?? 0,

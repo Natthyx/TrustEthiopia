@@ -19,6 +19,7 @@ interface Review {
   is_verified: boolean | null
   reviewer: {
     name: string | null
+    profile_image_url: string | null
   } | null
   likes_count?: number | null
   review_comments?: Array<{
@@ -96,7 +97,7 @@ export default function BusinessReviews() {
             created_at,
             is_verified,
             likes_count,
-            reviewer:profiles(name),
+            reviewer:profiles(name, profile_image_url),
             review_comments(
               id,
               comment,
@@ -345,6 +346,7 @@ export default function BusinessReviews() {
                 <ReviewCard
                   key={review.id}
                   author={review.reviewer?.name || "Anonymous"}
+                  avatar={review.reviewer?.profile_image_url || undefined}
                   rating={review.rating}
                   title={`Rating: ${review.rating} stars`}
                   content={review.comment || "No comment provided"}
