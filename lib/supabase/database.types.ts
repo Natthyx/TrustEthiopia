@@ -502,7 +502,7 @@ export type Database = {
           }
         ]
       }
-            user_comment_likes: {
+      user_comment_likes: {
         Row: {
           id: string
           user_id: string
@@ -534,6 +534,48 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "review_comments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      business_views: {
+        Row: {
+          id: string
+          business_id: string
+          viewed_at: string
+          user_id: string | null
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          viewed_at?: string
+          user_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          id?: string
+          business_id?: string
+          viewed_at?: string
+          user_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_views_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]

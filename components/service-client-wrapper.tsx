@@ -44,6 +44,24 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
   const [userLikes, setUserLikes] = useState<Record<string, boolean>>({})
   const [userCommentLikes, setUserCommentLikes] = useState<Record<string, boolean>>({})
 
+  // Track view with real IP using server action
+  useEffect(() => {
+  const trackView = async () => {
+    try {
+      await fetch('/api/track-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_id: business.id })
+      })
+    } catch (err) {
+      // Silent fail — views are not critical
+      console.log('View tracking failed (non-critical)')
+    }
+  }
+
+  trackView()
+}, [business.id])
+
   // Load user data: review status + likes
   useEffect(() => {
     const loadUserData = async () => {

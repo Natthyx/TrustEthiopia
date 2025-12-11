@@ -45,12 +45,15 @@ interface ReviewData {
 export default function BusinessDashboard() {
   const [business, setBusiness] = useState<BusinessData | null>(null)
   const [reviews, setReviews] = useState<ReviewData[]>([])
+  const [viewCount, setViewCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [showSetup, setShowSetup] = useState(false)
   const [setupData, setSetupData] = useState({
     businessName: "",
     location: "",
-    website: ""
+    website: "",
+    description: null,
+    is_banned: false
   })
   const router = useRouter()
   const supabase = createClient()
@@ -61,6 +64,7 @@ export default function BusinessDashboard() {
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
+        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         
         if (userError || !user) {
@@ -84,7 +88,9 @@ export default function BusinessDashboard() {
             setSetupData({
               businessName: metadata.businessName || "",
               location: metadata.location || "",
-              website: metadata.website || ""
+              website: metadata.website || "",
+              description: null,
+              is_banned: false
             })
             setShowSetup(true)
           }
@@ -107,6 +113,16 @@ export default function BusinessDashboard() {
           
           if (!reviewsError && reviewsData) {
             setReviews(reviewsData)
+          }
+          
+          // Fetch view count
+          const { count: viewCountData, error: viewCountError } = await supabase
+            .from('business_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessData.id)
+          
+          if (!viewCountError && viewCountData !== null) {
+            setViewCount(viewCountData)
           }
         }
 
@@ -303,7 +319,7 @@ export default function BusinessDashboard() {
             {[
               { icon: Star, label: "Average Rating", value: averageRating.toFixed(1), color: "text-yellow-500" },
               { icon: MessageSquare, label: "Total Reviews", value: reviews.length.toString(), color: "text-blue-500" },
-              { icon: Users, label: "Profile Views", value: "4.5K", color: "text-purple-500" },
+              { icon: Users, label: "Profile Views", value: viewCount.toString(), color: "text-purple-500" },
               { icon: TrendingUp, label: "Avg Response Time", value: "2h 30m", color: "text-green-500" },
             ].map((stat, idx) => {
               const Icon = stat.icon
