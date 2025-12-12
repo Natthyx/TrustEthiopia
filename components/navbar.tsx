@@ -99,8 +99,10 @@ export function Navbar() {
 
   const navItems = [
     { href: '/categories', label: 'Categories' },
-    { href: '/blog', label: 'Blog' },
     { href: '/explore', label: 'Explore' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/about', label: 'About' },
+    
   ]
 
   const getRoleLink = () => {
