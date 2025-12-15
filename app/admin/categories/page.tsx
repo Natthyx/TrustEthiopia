@@ -12,6 +12,28 @@ import { Trash2, Plus, Eye } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
+import { 
+  Shirt, 
+  Hotel, 
+  Utensils, 
+  TabletSmartphone, 
+  Folder, 
+  Hospital, 
+  ShoppingBag, 
+  Briefcase, 
+  Drama, 
+  Car, 
+  Home, 
+  Sparkles, 
+  Dumbbell, 
+  Laptop, 
+  Plane, 
+  Book, 
+  Wallet, 
+  PawPrint,
+  Stethoscope
+} from 'lucide-react'
+
 interface Category {
   id: string
   name: string
@@ -38,7 +60,7 @@ export default function AdminCategoriesPage() {
 
   const [formData, setFormData] = useState({
     categoryName: "",
-    categoryIcon: "📁",
+    categoryIcon: "shirt",
     categoryBgColor: "bg-gray-100",
   })
 
@@ -57,21 +79,25 @@ export default function AdminCategoriesPage() {
 
   // Predefined icons for selection
   const icons = [
-    { name: "Folder", value: "📁" },
-    { name: "Healthcare", value: "🏥" },
-    { name: "Restaurant", value: "🍽️" },
-    { name: "Shopping", value: "🛍️" },
-    { name: "Services", value: "💼" },
-    { name: "Entertainment", value: "🎭" },
-    { name: "Car", value: "🚗" },
-    { name: "Home", value: "🏠" },
-    { name: "Beauty", value: "💅" },
-    { name: "Fitness", value: "💪" },
-    { name: "Tech", value: "💻" },
-    { name: "Travel", value: "✈️" },
-    { name: "Education", value: "📚" },
-    { name: "Money", value: "💰" },
-    { name: "Pets", value: "🐾" },
+    { name: "Clothing Store", value: "shirt", icon: Shirt },
+    { name: "Hotel", value: "hotel", icon: Hotel },
+    { name: "Restaurant", value: "utensils", icon: Utensils },
+    { name: "Mobile & Accessories", value: "tablet-smartphone", icon: TabletSmartphone },
+    { name: "Dental Clinic", value: "tooth", icon: Stethoscope },
+    { name: "Folder", value: "folder", icon: Folder },
+    { name: "Healthcare", value: "hospital", icon: Hospital },
+    { name: "Shopping", value: "shopping-bag", icon: ShoppingBag },
+    { name: "Services", value: "briefcase", icon: Briefcase },
+    { name: "Entertainment", value: "drama", icon: Drama },
+    { name: "Car", value: "car", icon: Car },
+    { name: "Home", value: "home", icon: Home },
+    { name: "Beauty", value: "sparkles", icon: Sparkles },
+    { name: "Fitness", value: "dumbbell", icon: Dumbbell },
+    { name: "Tech", value: "laptop", icon: Laptop },
+    { name: "Travel", value: "plane", icon: Plane },
+    { name: "Education", value: "book", icon: Book },
+    { name: "Money", value: "wallet", icon: Wallet },
+    { name: "Pets", value: "paw-print", icon: PawPrint },
   ]
 
   useEffect(() => {
@@ -126,7 +152,7 @@ export default function AdminCategoriesPage() {
       setFormData({ 
         ...formData, 
         categoryName: "",
-        categoryIcon: "📁",
+        categoryIcon: "shirt",
         categoryBgColor: "bg-gray-100"
       })
       fetchData()
@@ -263,16 +289,19 @@ export default function AdminCategoriesPage() {
                     Category Icon
                   </Label>
                   <div className="grid grid-cols-5 gap-2 mt-2">
-                    {icons.map((icon) => (
-                      <Button
-                        key={icon.value}
-                        variant={formData.categoryIcon === icon.value ? "default" : "outline"}
-                        className="h-12"
-                        onClick={() => setFormData({...formData, categoryIcon: icon.value})}
-                      >
-                        <span className="text-xl">{icon.value}</span>
-                      </Button>
-                    ))}
+                    {icons.map((icon) => {
+                      const IconComponent = icon.icon;
+                      return (
+                        <Button
+                          key={icon.value}
+                          variant={formData.categoryIcon === icon.value ? "default" : "outline"}
+                          className="h-12 flex items-center justify-center"
+                          onClick={() => setFormData({...formData, categoryIcon: icon.value})}
+                        >
+                          <IconComponent className="w-5 h-5" />
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>
                 

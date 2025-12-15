@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { createClient } from '@/lib/supabase/client'
+import { Footer } from "@/components/footer"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -99,6 +100,7 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   )
 }

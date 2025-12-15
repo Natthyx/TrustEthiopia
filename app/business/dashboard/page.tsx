@@ -272,7 +272,7 @@ export default function BusinessDashboard() {
         <Navbar />
         <main className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar role="business" />
-          <div className="flex-1 ml-64 p-8">
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Business Setup</h1>
               <p className="text-muted-foreground mt-2">
@@ -355,7 +355,7 @@ export default function BusinessDashboard() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Business Dashboard</h1>
             <p className="text-muted-foreground mt-2">
@@ -363,8 +363,8 @@ export default function BusinessDashboard() {
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Stats - Made responsive for mobile */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             {[
               { icon: Star, label: "Average Rating", value: averageRating.toFixed(1), color: "text-yellow-500" },
               { icon: MessageSquare, label: "Total Reviews", value: reviews.length.toString(), color: "text-blue-500" },
@@ -373,14 +373,14 @@ export default function BusinessDashboard() {
             ].map((stat, idx) => {
               const Icon = stat.icon
               return (
-                <Card key={idx} className="p-6">
+                <Card key={idx} className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-                      <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                      <p className="text-xl font-bold mt-1">{stat.value}</p>
                     </div>
                     <div className={`p-2 rounded-lg bg-primary/10 ${stat.color}`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                     </div>
                   </div>
                 </Card>
@@ -388,18 +388,18 @@ export default function BusinessDashboard() {
             })}
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="p-6 lg:col-span-1">
+          {/* Charts - Made responsive for mobile with side-by-side on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card className="p-4">
               <h3 className="font-semibold mb-4">Rating Distribution</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={ratingData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
+                    innerRadius={40}
+                    outerRadius={70}
                     paddingAngle={2}
                     dataKey="count"
                   >
@@ -412,13 +412,13 @@ export default function BusinessDashboard() {
               </ResponsiveContainer>
             </Card>
 
-            <Card className="p-6 lg:col-span-2">
+            <Card className="p-4">
               <h3 className="font-semibold mb-4">Profile Views</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={viewsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="month" stroke="var(--color-muted-foreground)" />
-                  <YAxis stroke="var(--color-muted-foreground)" />
+                  <XAxis dataKey="month" stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <YAxis stroke="var(--color-muted-foreground)" fontSize={12} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--color-card)",
@@ -430,44 +430,43 @@ export default function BusinessDashboard() {
                     dataKey="views" 
                     stroke="var(--color-primary)" 
                     strokeWidth={2} 
-                    activeDot={{ r: 8 }} 
+                    activeDot={{ r: 6 }} 
                   />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
           </div>
 
-          {/* Recent Reviews */}
+          {/* Recent Reviews - Made responsive for mobile */}
           <div className="mb-8">
-            <Card className="p-6">
+            <Card className="p-4">
               <h3 className="font-semibold mb-4">Recent Reviews</h3>
               {reviews.length > 0 ? (
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="border-b pb-4 last:border-0 last:pb-0">
                       <div className="flex items-start justify-between">
-                        <div>
-                          <span className="text-sm font-medium">
-                              {review.reviewer?.name || "Anonymous"}
-                            </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium block truncate">
+                            {review.reviewer?.name || "Anonymous"}
+                          </span>
                           <div className="flex items-center gap-2 mb-1">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${
+                                className={`w-3 h-3 ${
                                   i < review.rating
                                     ? "fill-yellow-400 text-yellow-400"
                                     : "text-gray-300"
                                 }`}
                               />
                             ))}
-                            <p className="text-sm text-muted-foreground">
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
                             {review.comment || "No comment provided"}
                           </p>
-                          </div>
-                          
                         </div>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap">
                           {review.created_at
                             ? new Date(review.created_at).toLocaleDateString()
                             : ""}
@@ -477,7 +476,7 @@ export default function BusinessDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">
+                <p className="text-muted-foreground text-center py-6">
                   No reviews yet. Encourage your customers to leave reviews!
                 </p>
               )}

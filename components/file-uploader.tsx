@@ -72,12 +72,12 @@ export function FileUploader({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+          "border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors w-full",
           isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
         )}
       >
         <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-        <p className="font-medium mb-1">Drag files here or click to browse</p>
+        <p className="font-medium mb-1 text-sm sm:text-base">Drag files here or click to browse</p>
         <p className="text-xs text-muted-foreground mb-4">
           Max size: 5MB • Formats: {acceptedFormats.join(", ").toUpperCase()}
         </p>
@@ -101,10 +101,10 @@ export function FileUploader({
         <div className="space-y-2">
           <p className="text-sm font-medium">{files.length} file(s) selected</p>
           {files.map((file, idx) => (
-            <Card key={idx} className="p-3 flex items-center justify-between">
+            <Card key={idx} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <File className="w-4 h-4 text-muted-foreground" />
-                <div>
+                <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{file.name}</p>
                   <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
                 </div>

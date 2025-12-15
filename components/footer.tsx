@@ -1,16 +1,22 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
+import Image from 'next/image'
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-background/80 backdrop-blur-xl">
+    <footer className="border-t border-border bg-background backdrop-blur-xl">
       <div className="container-app py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
-              <span className="font-bold text-lg">ReviewTrust</span>
+            <Link href="/" className="flex items-center">
+              <Image 
+                src="/trustethiiopia.png" 
+                alt="Trust Ethiopia Logo" 
+                width={130} 
+                height={50} 
+                className="object-contain"
+              />
             </Link>
             <p className="text-sm text-muted-foreground">
               Discover trusted reviews of services and businesses. Share your experience and help others make informed decisions.
@@ -106,7 +112,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ReviewTrust. All rights reserved.
+            © {new Date().getFullYear()} Trust Ethiopia. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

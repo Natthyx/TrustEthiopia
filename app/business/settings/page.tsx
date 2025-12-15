@@ -185,7 +185,7 @@ export default function BusinessSettingsPage() {
         <Navbar />
         <main className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar role="business" />
-          <div className="flex-1 ml-64 p-8">
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Settings</h1>
               <p className="text-muted-foreground mt-2">Manage your account and reviews</p>
@@ -204,7 +204,7 @@ export default function BusinessSettingsPage() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Settings</h1>
             <p className="text-muted-foreground mt-2">Manage your account and reviews</p>
@@ -212,7 +212,7 @@ export default function BusinessSettingsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Profile Information */}
-            <Card className="p-6">
+            <Card className="p-4">
               <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
               <div className="flex flex-col items-center mb-6">
                 <ProfileImageUpload 
@@ -246,7 +246,7 @@ export default function BusinessSettingsPage() {
                 </div>
                 
                 <div className="pt-4">
-                  <Button type="submit" disabled={saving}>
+                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">
                     {saving ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
@@ -254,7 +254,7 @@ export default function BusinessSettingsPage() {
             </Card>
 
             {/* Change Password */}
-            <Card className="p-6">
+            <Card className="p-4">
               <h2 className="text-xl font-semibold mb-6">Change Password</h2>
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div>
@@ -291,7 +291,7 @@ export default function BusinessSettingsPage() {
                 </div>
                 
                 <div className="pt-4">
-                  <Button type="submit" disabled={changingPassword}>
+                  <Button type="submit" disabled={changingPassword} className="w-full sm:w-auto">
                     {changingPassword ? "Updating..." : "Update Password"}
                   </Button>
                 </div>
@@ -299,13 +299,13 @@ export default function BusinessSettingsPage() {
             </Card>
 
             {/* Reviews Section */}
-            <Card className="p-6 lg:col-span-2">
+            <Card className="p-4 lg:col-span-2">
               <h2 className="text-xl font-semibold mb-6">Reviews You've Written</h2>
               {reviews.length > 0 ? (
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
                           <h3 className="font-medium">{review.business_name}</h3>
                           <p className="text-sm text-muted-foreground">

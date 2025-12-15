@@ -12,6 +12,7 @@ import { MapPin, Phone, Globe, Clock, ChevronDown } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { toast } from "sonner"
 import { Review } from "@/types/review"
+import { Footer } from "./footer"
 
 interface Business {
   id: string
@@ -396,43 +397,28 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                     className="w-full h-full object-cover"
                   />
                 </div>
-                {/* Other images */}
-                <div className="grid grid-cols-2 gap-4">
-                  {business.images
-                    .filter((_, index) => index < 4) // Limit to 4 images total (1 primary + 3 others)
-                    .slice(1, 4) // Skip the first (primary) image
-                    .map((image, index) => (
-                      <div key={image.id} className="relative h-[180px] rounded-lg overflow-hidden">
-                        <img
-                          src={image.image_url}
-                          alt={`${business.name} Gallery ${index + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                        />
-                      </div>
-                    ))}
-                  {/* If we have fewer than 4 images, show placeholders */}
-                  {business.images.length < 4 && 
-                    Array.from({ length: 4 - business.images.length }).map((_, index) => (
-                      <div key={`placeholder-${index}`} className="relative h-[180px] rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500">No image</span>
-                      </div>
-                    ))
-                  }
-                </div>
+                {/* Other images - only show if they exist */}
+                {business.images.length > 1 && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {business.images
+                      .filter(img => !img.is_primary) // Exclude primary image
+                      .slice(0, 3) // Limit to 3 additional images
+                      .map((image, index) => (
+                        <div key={image.id} className="relative h-[180px] rounded-lg overflow-hidden">
+                          <img
+                            src={image.image_url}
+                            alt={`${business.name} Gallery ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                          />
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             ) : (
-              // Fallback to placeholder images if no business images
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="md:col-span-2 relative h-96 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-500">No primary image</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="relative h-[180px] rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500">No image</span>
-                    </div>
-                  ))}
-                </div>
+              // Fallback when no images at all - show a simple placeholder
+              <div className="flex items-center justify-center h-96 bg-muted rounded-lg">
+                <p className="text-muted-foreground">No images available</p>
               </div>
             )}
           </div>
@@ -599,6 +585,7 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
           </div>
         </section>
       </main>
+      <Footer />
     </>
   )
 }

@@ -544,16 +544,16 @@ export default function BusinessProfile() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Business Profile</h1>
             <p className="text-muted-foreground mt-2">Manage your business information</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Summary */}
+            {/* Summary - Full width on mobile, 1/3 width on desktop */}
             <div className="space-y-4">
-              <Card className="p-6">
+              <Card className="p-4">
                 <h3 className="font-semibold mb-4">Profile Summary</h3>
                 <div className="space-y-4">
                   <div>
@@ -579,9 +579,9 @@ export default function BusinessProfile() {
               </Card>
             </div>
 
-            {/* Edit Form */}
+            {/* Edit Form - Full width on mobile, 2/3 width on desktop */}
             <div className="lg:col-span-2">
-              <Card className="p-6">
+              <Card className="p-4">
                 <h3 className="font-semibold mb-6">Edit Business Details</h3>
                 
                 {success && (
@@ -615,8 +615,8 @@ export default function BusinessProfile() {
                       Categories & Subcategories
                     </Label>
                     
-                    {/* Category Selection */}
-                    <div className="flex gap-2 mt-2">
+                    {/* Category Selection - Responsive layout */}
+                    <div className="flex flex-col sm:flex-row gap-2 mt-2">
                       <Select onValueChange={handleCategoryChange} value={formData.categoryId}>
                         <SelectTrigger className="flex-1">
                           <SelectValue placeholder="Select a category" />
@@ -633,6 +633,7 @@ export default function BusinessProfile() {
                         type="button" 
                         onClick={handleAddCategory}
                         disabled={!formData.categoryId}
+                        className="w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
@@ -683,7 +684,7 @@ export default function BusinessProfile() {
                                 {/* Subcategory selection for this category */}
                                 {isExpanded && categorySubcategories.length > 0 && (
                                   <div className="p-2 border-t">
-                                    <div className="flex gap-2 mb-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 mb-2">
                                       <Select onValueChange={handleSubcategoryChange} value={formData.subcategoryId}>
                                         <SelectTrigger className="flex-1">
                                           <SelectValue placeholder="Select a subcategory" />
@@ -701,6 +702,7 @@ export default function BusinessProfile() {
                                         onClick={handleAddSubcategory}
                                         disabled={!formData.subcategoryId}
                                         size="sm"
+                                        className="w-full sm:w-auto"
                                       >
                                         <Plus className="w-4 h-4" />
                                       </Button>
@@ -838,18 +840,19 @@ export default function BusinessProfile() {
                       Business Images
                     </Label>
                     <div className="mt-2">
-                      <div className="flex items-center gap-4 mb-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-4 mb-4">
                         <Input
                           type="file"
                           accept="image/*"
                           onChange={handleImageUpload}
                           disabled={uploading}
-                          className="flex-1"
+                          className="flex-1 w-full"
                         />
                         <Button 
                           type="button" 
                           disabled={uploading}
                           variant="outline"
+                          className="w-full sm:w-auto"
                         >
                           {uploading ? "Uploading..." : "Upload Image"}
                         </Button>
@@ -866,7 +869,7 @@ export default function BusinessProfile() {
                                   className="w-full h-full object-cover"
                                 />
                                 {image.is_primary && (
-                                  <Badge className="absolute top-2 left-2">Primary</Badge>
+                                  <Badge className="absolute top-2 left-2 text-xs">Profile Picture</Badge>
                                 )}
                               </div>
                               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -878,7 +881,7 @@ export default function BusinessProfile() {
                                     onClick={() => handleSetPrimaryImage(image.id)}
                                     className="h-8 px-2 text-xs"
                                   >
-                                    Make Primary
+                                    Set as Profile
                                   </Button>
                                 )}
                                 <Button
@@ -898,11 +901,11 @@ export default function BusinessProfile() {
                     </div>
                   </div>
                   
-                  <div className="pt-4 border-t border-border flex gap-3">
-                    <Button type="submit" disabled={saving}>
+                  <div className="pt-4 border-t border-border flex flex-col sm:flex-row gap-3">
+                    <Button type="submit" disabled={saving} className="w-full sm:w-auto">
                       {saving ? "Saving..." : "Save Changes"}
                     </Button>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
                   </div>
                 </form>
               </Card>

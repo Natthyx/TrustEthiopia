@@ -269,10 +269,13 @@ export default function BusinessBlogPage() {
     return (
       <>
         <Navbar />
-        <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading blog dashboard...</p>
+        <main className="flex min-h-[calc(100vh-4rem)]">
+          <Sidebar role="business" />
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading blog dashboard...</p>
+            </div>
           </div>
         </main>
       </>
@@ -283,15 +286,18 @@ export default function BusinessBlogPage() {
     return (
       <>
         <Navbar />
-        <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-          <div className="text-center max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
-            <p className="text-muted-foreground mb-6">
-              Please set up your business profile first to access the blog dashboard.
-            </p>
-            <Button onClick={() => router.push('/business/profile')}>
-              Go to Business Profile
-            </Button>
+        <main className="flex min-h-[calc(100vh-4rem)]">
+          <Sidebar role="business" />
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
+            <div className="text-center max-w-md mx-auto">
+              <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
+              <p className="text-muted-foreground mb-6">
+                Please set up your business profile first to access the blog dashboard.
+              </p>
+              <Button onClick={() => router.push('/business/profile')}>
+                Go to Business Profile
+              </Button>
+            </div>
           </div>
         </main>
       </>
@@ -303,7 +309,7 @@ export default function BusinessBlogPage() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Blog Dashboard</h1>
             <p className="text-muted-foreground mt-2">
@@ -314,8 +320,8 @@ export default function BusinessBlogPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Blog Form */}
             <div className="lg:col-span-2">
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-6">
+              <Card className="p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                   <h2 className="text-xl font-semibold">
                     {editingPost ? "Edit Blog Post" : "Create New Blog Post"}
                   </h2>
@@ -393,13 +399,14 @@ export default function BusinessBlogPage() {
                       />
                     </div>
 
-                    <div className="flex justify-end gap-3">
+                    <div className="flex flex-col sm:flex-row justify-end gap-3">
                       {editingPost && (
                         <Button
                           type="button"
                           variant="outline"
                           onClick={handleCancel}
                           disabled={saving}
+                          className="w-full sm:w-auto"
                         >
                           Cancel
                         </Button>
@@ -408,6 +415,7 @@ export default function BusinessBlogPage() {
                         type="submit"
                         variant="outline"
                         disabled={saving}
+                        className="w-full sm:w-auto"
                       >
                         <Save className="w-4 h-4 mr-2" />
                         {saving ? "Saving..." : "Save Draft"}
@@ -416,6 +424,7 @@ export default function BusinessBlogPage() {
                         type="button"
                         onClick={(e) => handleSubmit(e, true)}
                         disabled={saving}
+                        className="w-full sm:w-auto"
                       >
                         <Send className="w-4 h-4 mr-2" />
                         {saving ? "Publishing..." : "Publish"}
@@ -448,7 +457,7 @@ export default function BusinessBlogPage() {
 
             {/* Blog Posts List */}
             <div>
-              <Card className="p-6">
+              <Card className="p-4">
                 <h2 className="text-xl font-semibold mb-4">Your Blog Posts</h2>
                 {blogPosts.length > 0 ? (
                   <div className="space-y-4">
@@ -460,9 +469,9 @@ export default function BusinessBlogPage() {
                         }`}
                         onClick={() => handleEdit(post)}
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
                           <h3 className="font-medium line-clamp-2">{post.title}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
+                          <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                             post.status === 'published' 
                               ? "bg-green-100 text-green-800" 
                               : post.status === 'approved'
@@ -485,11 +494,12 @@ export default function BusinessBlogPage() {
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
                           Created: {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown'}
-                        </p>                        <div className="flex gap-2 mt-3">
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2 mt-3">
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-xs"
+                            className="text-xs w-full sm:w-auto"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleEdit(post)
@@ -500,7 +510,7 @@ export default function BusinessBlogPage() {
                           <Button 
                             size="sm" 
                             variant="destructive" 
-                            className="text-xs"
+                            className="text-xs w-full sm:w-auto"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleDelete(post.id)

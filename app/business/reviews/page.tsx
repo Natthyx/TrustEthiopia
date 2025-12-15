@@ -289,7 +289,7 @@ export default function BusinessReviews() {
         <Navbar />
         <main className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar role="business" />
-          <div className="flex-1 ml-64 p-8">
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Customer Reviews</h1>
               <p className="text-muted-foreground mt-2">Respond to reviews and manage feedback</p>
@@ -308,16 +308,16 @@ export default function BusinessReviews() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">Customer Reviews</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Customer Reviews</h1>
             <p className="text-muted-foreground mt-2">Respond to reviews and manage feedback</p>
           </div>
 
-          {/* Filters */}
-          <div className="flex gap-4 mb-8">
+          {/* Filters - Responsive layout */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="All Reviews" />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +328,7 @@ export default function BusinessReviews() {
               </SelectContent>
             </Select>
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Newest First" />
               </SelectTrigger>
               <SelectContent>

@@ -143,9 +143,9 @@ export function BusinessHoursInput({ value, onChange }: BusinessHoursInputProps)
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <Label className="text-sm font-medium">Business Hours</Label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             type="button" 
             variant="outline" 
@@ -168,17 +168,17 @@ export function BusinessHoursInput({ value, onChange }: BusinessHoursInputProps)
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {businessHours.map(({ day, openTime, closeTime }) => (
-            <div key={day} className="flex items-center gap-3">
-              <Label htmlFor={`hours-${day}`} className="w-24 text-sm font-medium">
+            <div key={day} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <Label htmlFor={`hours-${day}`} className="w-full sm:w-24 text-sm font-medium">
                 {day}
               </Label>
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 w-full">
                 <Input
                   id={`hours-${day}-open`}
                   type="time"
                   value={openTime}
                   onChange={(e) => handleTimeChange(day, 'openTime', e.target.value)}
-                  className="w-28"
+                  className="w-full sm:w-28"
                 />
                 <span className="text-muted-foreground">to</span>
                 <Input
@@ -186,7 +186,7 @@ export function BusinessHoursInput({ value, onChange }: BusinessHoursInputProps)
                   type="time"
                   value={closeTime}
                   onChange={(e) => handleTimeChange(day, 'closeTime', e.target.value)}
-                  className="w-28"
+                  className="w-full sm:w-28"
                 />
               </div>
             </div>

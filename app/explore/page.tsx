@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { ServiceCard } from "@/components/service-card"
+import { ServiceListItem } from "@/components/service-list-item"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Filter, Star } from "lucide-react"
+import { Search, Filter, Star, Grid, List } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
+import { Footer } from "@/components/footer"
+import Link from "next/link"
 
 interface Service {
   id: string
@@ -36,7 +39,6 @@ interface Pagination {
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState("rating")
   const [services, setServices] = useState<Service[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -49,18 +51,28 @@ export default function ExplorePage() {
   })
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const searchParams = useSearchParams()
   
   // Get subcategory from URL params
   const subcategoryParam = searchParams.get('subcategory')
+  const categoryParam = searchParams.get('category')
+
+  // Use URL parameter as the source of truth for selected category
+  const selectedCategory = categoryParam || "all"
 
   useEffect(() => {
     fetchCategories()
   }, [])
 
   useEffect(() => {
+    // Reset to first page when filters change
+    setCurrentPage(1)
+  }, [categoryParam, subcategoryParam, searchQuery, sortBy])
+
+  useEffect(() => {
     fetchBusinesses()
-  }, [searchQuery, selectedCategory, sortBy, subcategoryParam, currentPage])
+  }, [searchQuery, selectedCategory, sortBy, subcategoryParam, currentPage, categoryParam])
 
   const fetchCategories = async () => {
     try {
@@ -118,6 +130,19 @@ export default function ExplorePage() {
     }
   }
 
+  const handleCategoryChange = (value: string) => {
+    // Update URL when category changes
+    const params = new URLSearchParams(window.location.search)
+    if (value === 'all') {
+      params.delete('category')
+    } else {
+      params.set('category', value)
+    }
+    // Reset to first page when category changes
+    params.set('page', '1')
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`)
+  }
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     // Scroll to top when changing pages
@@ -129,10 +154,64 @@ export default function ExplorePage() {
       <Navbar/>
       <main className="min-h-screen">
         <div className="container-app py-8">
-          {/* Header */}
+          {/* Header with Breadcrumbs */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Explore Services</h1>
-            <p className="text-muted-foreground">Discover and review thousands of businesses</p>
+            {/* Breadcrumb Navigation */}
+            {(categoryParam || subcategoryParam) && (
+              <nav className="mb-4">
+                <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <li>
+                    <Link href="/explore" className="hover:text-primary transition-colors">
+                      Explore
+                    </Link>
+                  </li>
+                  {(categoryParam && categories.length > 0) && (
+                    <>
+                      <li>/</li>
+                      <li>
+                        {subcategoryParam ? (
+                          <Link 
+                            href={`/explore?category=${categoryParam}`} 
+                            className="hover:text-primary transition-colors"
+                          >
+                            {categories.find(cat => cat.id === categoryParam)?.name || 'Category'}
+                          </Link>
+                        ) : (
+                          <span className="text-foreground">
+                            {categories.find(cat => cat.id === categoryParam)?.name || 'Category'}
+                          </span>
+                        )}
+                      </li>
+                    </>
+                  )}
+                  {subcategoryParam && (
+                    <>
+                      <li>/</li>
+                      <li>
+                        <span className="text-foreground">
+                          {subcategoryParam}
+                        </span>
+                      </li>
+                    </>
+                  )}
+                </ol>
+              </nav>
+            )}
+            
+            <h1 className="text-3xl font-bold mb-2">
+              {subcategoryParam 
+                ? subcategoryParam 
+                : categoryParam && categories.length > 0
+                  ? `Best in ${categories.find(cat => cat.id === categoryParam)?.name || 'Category'}`
+                  : 'Explore Services'}
+            </h1>
+            <p className="text-muted-foreground">
+              {subcategoryParam 
+                ? `Discover and review businesses in ${subcategoryParam}` 
+                : categoryParam && categories.length > 0
+                  ? `Discover the best businesses in ${categories.find(cat => cat.id === categoryParam)?.name || 'this category'}`
+                  : 'Discover and review thousands of businesses'}
+            </p>
           </div>
 
           {/* Search & Filters */}
@@ -146,7 +225,7 @@ export default function ExplorePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
               <SelectTrigger className="w-full md:w-40">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -169,6 +248,24 @@ export default function ExplorePage() {
                 <SelectItem value="recent">Recently Added</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex gap-1">
+              <Button 
+                variant={viewMode === "grid" ? "default" : "outline"} 
+                size="icon"
+                onClick={() => setViewMode("grid")}
+                className="h-10 w-10"
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={viewMode === "list" ? "default" : "outline"} 
+                size="icon"
+                onClick={() => setViewMode("list")}
+                className="h-10 w-10"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="md:hidden bg-transparent">
@@ -208,11 +305,21 @@ export default function ExplorePage() {
 
           {/* Results Grid */}
           {!loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <ServiceCard key={service.id} {...service} />
-              ))}
-            </div>
+            <>
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {services.map((service) => (
+                    <ServiceCard key={service.id} {...service} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {services.map((service) => (
+                    <ServiceListItem key={service.id} {...service} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {/* Empty State */}
@@ -300,6 +407,7 @@ export default function ExplorePage() {
           )}
         </div>
       </main>
+      <Footer />
     </>
   )
 }

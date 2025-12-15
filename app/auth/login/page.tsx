@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { loginUser } from "@/app/auth/actions"
+import { Footer } from "@/components/footer"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -160,13 +161,6 @@ export default function LoginPage() {
                 <span className="bg-card px-2 text-muted-foreground">Or</span>
               </div>
             </div>
-
-            <Button variant="outline" className="w-full gap-2 bg-transparent">
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              Continue with Google
-            </Button>
           </Card>
 
           <div className="text-center space-y-4">
@@ -179,6 +173,7 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+       <Footer />
     </>
   )
 }

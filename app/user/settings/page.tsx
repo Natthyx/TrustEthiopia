@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import ProfileImageUpload from '@/components/profile-image-upload'
+import { Footer } from '@/components/footer'
 
 interface ProfileData {
   id: string
@@ -214,6 +215,7 @@ export default function UserSettingsPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </>
   )
 }

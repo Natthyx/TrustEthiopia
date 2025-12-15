@@ -216,9 +216,9 @@ export default function BusinessDocuments() {
         <Navbar />
         <main className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar role="business" />
-          <div className="flex-1 ml-64 p-8">
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8 w-full overflow-x-hidden">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold">Documents</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">Documents</h1>
               <p className="text-muted-foreground mt-2">Upload and manage business documents</p>
             </div>
             <div className="flex items-center justify-center h-64">
@@ -235,14 +235,14 @@ export default function BusinessDocuments() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8 w-full overflow-x-hidden">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">Documents</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Documents</h1>
             <p className="text-muted-foreground mt-2">Upload and manage business documents</p>
           </div>
 
           {/* Upload Section */}
-          <Card className="p-6 mb-8">
+          <Card className="p-4 mb-8">
             <h3 className="font-semibold mb-4">Upload Document</h3>
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
@@ -253,6 +253,7 @@ export default function BusinessDocuments() {
                   onChange={(e) => setDocumentName(e.target.value)}
                   placeholder="Enter document name"
                   required
+                  className="w-full"
                 />
               </div>
               
@@ -264,13 +265,17 @@ export default function BusinessDocuments() {
                   onFilesSelected={handleFileSelect}
                 />
                 {selectedFile && (
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-muted-foreground mt-2 truncate">
                     Selected: {selectedFile.name}
                   </p>
                 )}
               </div>
               
-              <Button type="submit" disabled={uploading || !selectedFile || !documentName.trim()}>
+              <Button 
+                type="submit" 
+                disabled={uploading || !selectedFile || !documentName.trim()}
+                className="w-full sm:w-auto"
+              >
                 <Upload className="w-4 h-4 mr-2" />
                 {uploading ? "Uploading..." : "Upload Document"}
               </Button>
@@ -278,64 +283,70 @@ export default function BusinessDocuments() {
           </Card>
 
           {/* Documents List */}
-          <Card>
-            <div className="p-6 border-b border-border">
+          <Card className="overflow-hidden">
+            <div className="p-4 border-b border-border">
               <h3 className="font-semibold">Your Documents</h3>
             </div>
             {documents.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>File Name</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-muted-foreground" />
-                          {doc.document_name || "Unnamed Document"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : "Unknown date"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={doc.status === "approved" ? "default" : "secondary"} 
-                          className="gap-1"
-                        >
-                          {doc.status === "approved" ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : doc.status === "rejected" ? (
-                            <Trash2 className="w-3 h-3" />
-                          ) : (
-                            <Clock className="w-3 h-3" />
-                          )}
-                          {doc.status ? doc.status.charAt(0).toUpperCase() + doc.status.slice(1) : "Pending"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" className="gap-2">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="gap-2 text-destructive"
-                          onClick={() => handleDeleteDocument(doc.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap text-xs sm:text-sm">File Name</TableHead>
+                      <TableHead className="whitespace-nowrap text-xs sm:text-sm">Uploaded</TableHead>
+                      <TableHead className="whitespace-nowrap text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map((doc) => (
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2 min-w-[100px] sm:min-w-[120px]">
+                            <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate max-w-[80px] sm:max-w-[120px]">{doc.document_name || "Unnamed Document"}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                          {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : "Unknown date"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={doc.status === "approved" ? "default" : "secondary"} 
+                            className="gap-1 whitespace-nowrap text-xs"
+                          >
+                            {doc.status === "approved" ? (
+                              <CheckCircle className="w-3 h-3" />
+                            ) : doc.status === "rejected" ? (
+                              <Trash2 className="w-3 h-3" />
+                            ) : (
+                              <Clock className="w-3 h-3" />
+                            )}
+                            <span className="truncate max-w-[60px] sm:max-w-[80px]">
+                              {doc.status ? doc.status.charAt(0).toUpperCase() + doc.status.slice(1) : "Pending"}
+                            </span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" className="gap-2">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="gap-2 text-destructive"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="p-8 text-center">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

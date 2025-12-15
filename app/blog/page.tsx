@@ -9,6 +9,7 @@ import { Calendar, User, ArrowRight, Search } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { Footer } from "@/components/footer"
 
 interface BlogPost {
   id: string
@@ -76,7 +77,7 @@ export default function BlogPage() {
           <div className="container-app">
             <h1 className="text-4xl font-bold mb-4">Blog</h1>
             <p className="text-muted-foreground text-lg max-w-2xl">
-              Insights, tips, and guides to help you make the most of ReviewTrust
+              Insights, tips, and guides to help you make the most of Trust Ethiopia
             </p>
           </div>
         </section>
@@ -168,6 +169,7 @@ export default function BlogPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   )
 }

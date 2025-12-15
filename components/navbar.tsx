@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -14,8 +15,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, Search, LogIn, User, Settings, LogOut, AlertTriangle } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { ModeToggle } from '@/components/mode-toggle'
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 
 interface Profile {
   id: string
@@ -28,13 +30,11 @@ interface Profile {
 
 export function Navbar() {
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)  // ← NEW: Track auth loading state
+  const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
+  const [isBannedMessage, setIsBannedMessage] = useState(false)
   const supabase = createClient()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  
-  const isBannedMessage = searchParams.get('message') === 'banned'
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -51,11 +51,18 @@ export function Navbar() {
           if (error) {
             console.error('Error fetching profile:', error)
           } else {
-            if (profileData.is_banned) {
-              await supabase.auth.signOut()
-              setProfile(null)
-              router.push('/?message=banned')
-              return
+            // Check for banned status in URL params only on client side
+            const urlParams = new URLSearchParams(window.location.search)
+            const bannedParam = urlParams.get('message') === 'banned'
+            
+            if (profileData.is_banned || bannedParam) {
+              setIsBannedMessage(true)
+              if (profileData.is_banned) {
+                await supabase.auth.signOut()
+                setProfile(null)
+                router.push('/?message=banned')
+                return
+              }
             }
             
             setProfile({
@@ -67,11 +74,18 @@ export function Navbar() {
               is_banned: profileData.is_banned
             })
           }
+        } else {
+          // Check for banned status in URL params for logged out users
+          const urlParams = new URLSearchParams(window.location.search)
+          const bannedParam = urlParams.get('message') === 'banned'
+          if (bannedParam) {
+            setIsBannedMessage(true)
+          }
         }
       } catch (error) {
         console.error('Error:', error)
       } finally {
-        setLoading(false)  // ← Always stop loading, even on error
+        setLoading(false)
       }
     }
 
@@ -83,6 +97,10 @@ export function Navbar() {
       } else {
         setProfile(null)
         setLoading(false)
+        // Check for banned status when user logs out
+        const urlParams = new URLSearchParams(window.location.search)
+        const bannedParam = urlParams.get('message') === 'banned'
+        setIsBannedMessage(bannedParam)
       }
     })
 
@@ -99,10 +117,8 @@ export function Navbar() {
 
   const navItems = [
     { href: '/categories', label: 'Categories' },
-    { href: '/explore', label: 'Explore' },
     { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'About' },
-    
   ]
 
   const getRoleLink = () => {
@@ -123,7 +139,7 @@ export function Navbar() {
   if (loading) {
     return (
       <>
-        {(profile?.is_banned || isBannedMessage) && (
+        {isBannedMessage && (
           <div className="bg-red-600 text-white py-2 px-4 text-center text-sm font-medium">
             <div className="container-app flex items-center justify-center gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -136,9 +152,14 @@ export function Navbar() {
           <div className="container-app">
             <div className="flex items-center justify-between h-16">
               <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
-                <span className="font-bold text-lg">ReviewTrust</span>
-              </Link>
+              <Image 
+                src="/trustethiiopia.png" 
+                alt="Trust Ethiopia Logo" 
+                width={100} 
+                height={80} 
+                className="object-contain"
+              />
+            </Link>
 
               {/* Desktop: Show placeholder avatar */}
               <div className="hidden md:flex items-center gap-4">
@@ -164,7 +185,7 @@ export function Navbar() {
 
   return (
     <>
-      {(profile?.is_banned || isBannedMessage) && (
+      {isBannedMessage && (
         <div className="bg-red-600 text-white py-2 px-4 text-center text-sm font-medium">
           <div className="container-app flex items-center justify-center gap-2">
             <AlertTriangle className="w-4 h-4" />
@@ -177,8 +198,13 @@ export function Navbar() {
         <div className="container-app">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
-              <span className="font-bold text-lg">ReviewTrust</span>
+              <Image 
+                src="/trustethiiopia.png" 
+                alt="Trust Ethiopia Logo" 
+                width={100} 
+                height={80} 
+                className="object-contain"
+              />
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
@@ -186,7 +212,7 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -263,7 +289,9 @@ export function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
-                <div className="flex flex-col gap-4 mt-8">
+                {/* Adding a visually hidden title to fix the accessibility error */}
+                <VisuallyHidden.Root>Navigation Menu</VisuallyHidden.Root>
+                <div className="flex flex-col gap-4 mt-8 pl-4">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
@@ -280,29 +308,55 @@ export function Navbar() {
                       <ModeToggle />
                     </div>
                     {!profile ? (
-                      <>
-                        <Button variant="outline" asChild className="w-full bg-transparent">
-                          <Link href="/auth/login">Sign In</Link>
-                        </Button>
-                        <Button asChild className="w-full">
-                          <Link href="/auth/register">Sign Up</Link>
-                        </Button>
-                      </>
+                      <div className="flex flex-col gap-2">
+                        <Link 
+                          href="/auth/login" 
+                          className="text-sm text-primary hover:text-primary/80 transition-colors py-2"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Sign In
+                        </Link>
+                        <Link 
+                          href="/auth/register" 
+                          className="text-sm text-primary hover:text-primary/80 transition-colors py-2"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Sign Up
+                        </Link>
+                      </div>
                     ) : (
-                      <>
+                      <div className="flex flex-col gap-2">
                         {roleLink && (
-                          <Button variant="outline" asChild className="w-full bg-transparent">
-                            <Link href={roleLink.href}>{roleLink.label}</Link>
-                          </Button>
+                          <Link 
+                            href={roleLink.href} 
+                            className="text-sm text-primary hover:text-primary/80 transition-colors py-2"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {roleLink.label}
+                          </Link>
                         )}
-                        <Button variant="outline" asChild className="w-full bg-transparent">
-                          <Link href="/user/profile">Profile</Link>
-                        </Button>
-                      </>
+                        <Link 
+                          href="/user/profile" 
+                          className="text-sm text-primary hover:text-primary/880 transition-colors py-2"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Profile
+                        </Link>
+                        <button 
+                          className="text-sm text-red-600 hover:text-red-700 transition-colors py-2 text-left"
+                          onClick={() => {
+                            handleSignOut();
+                            setIsOpen(false);
+                          }}
+                        >
+                          Sign Out
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
               </SheetContent>
+
             </Sheet>
           </div>
         </div>

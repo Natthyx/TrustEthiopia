@@ -5,12 +5,12 @@
 
 :root {
   /* Brand Colors */
-  --primary: oklch(0.5 0.15 142);
+  --primary: oklch(28.7% 0.25 147); /* #1E5D4A converted to oklch */
   --primary-foreground: oklch(0.985 0 0);
 
   /* Backgrounds */
   --background: oklch(0.98 0 0);
-  --foreground: oklch(0.15 0 0);
+  --foreground: oklch(0.28 0.25 147);
 
   /* Cards & Surfaces */
   --card: oklch(1 0 0);
@@ -25,16 +25,16 @@
   /* Status Colors */
   --destructive: oklch(0.65 0.22 27);
   --destructive-foreground: oklch(1 0 0);
-  --accent: oklch(0.7 0.18 142);
+  --accent: oklch(0.54 0.071 157.3); /* Slightly lighter shade of #1E5D4A */
   --accent-foreground: oklch(1 0 0);
 
   /* Ring & Focus */
-  --ring: oklch(0.5 0.15 142);
+  --ring: oklch(0.31 0.052 157.3); /* #1E5D4A converted to oklch */
   --radius: 0.5rem;
 }
 
 .dark {
-  --primary: oklch(0.7 0.15 142);
+  --primary: oklch(0.631 0.071 157.3); /* Lighter version for dark mode */
   --primary-foreground: oklch(0.15 0 0);
 
   --background: oklch(0.1 0 0);
@@ -50,10 +50,10 @@
 
   --destructive: oklch(0.65 0.22 27);
   --destructive-foreground: oklch(0.95 0 0);
-  --accent: oklch(0.6 0.15 142);
+  --accent: oklch(0.54 0.071 157.3);
   --accent-foreground: oklch(0.15 0 0);
 
-  --ring: oklch(0.7 0.15 142);
+  --ring: oklch(0.31 0.052 157.3);
 }
 
 @theme inline {

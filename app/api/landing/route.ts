@@ -9,6 +9,24 @@ const createPublicClient = () => {
   )
 }
 
+// Helper function to group businesses by category
+function groupBusinessesByCategory(businesses: any[]) {
+  const categories: Record<string, any[]> = {}
+  
+  businesses.forEach(business => {
+    const categoryName = business.category_name
+    if (!categories[categoryName]) {
+      categories[categoryName] = []
+    }
+    categories[categoryName].push(business)
+  })
+  
+  return Object.entries(categories).map(([categoryName, businesses]) => ({
+    categoryName,
+    businesses: businesses.slice(0, 4) // Limit to 4 businesses per category
+  }))
+}
+
 export async function GET(request: Request) {
   try {
     const supabase = createPublicClient()
@@ -132,7 +150,7 @@ export async function GET(request: Request) {
     const topBusinesses = Object.entries(businessRatings)
       .filter(([, rating]) => rating.count >= 3)
       .sort(([, a], [, b]) => b.average - a.average || b.count - a.count)
-      .slice(0, 3)
+      .slice(0, 4)
       .map(([id]) => id)
 
     // Fetch featured services (top rated businesses with images)
@@ -194,7 +212,7 @@ export async function GET(request: Request) {
         comment,
         created_at,
         reviewee_id,
-        businesses(business_name),
+        businesses(business_name, website),
         profiles(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -211,7 +229,8 @@ export async function GET(request: Request) {
       comment: review.comment,
       createdAt: review.created_at,
       businessName: review.businesses?.business_name || "Unknown Business",
-      reviewerName: review.profiles?.name || "Anonymous User"
+      reviewerName: review.profiles?.name || "Anonymous User",
+      businessWebsite: review.businesses?.website || null
     })) || []
     
     const pagination = {
@@ -220,6 +239,144 @@ export async function GET(request: Request) {
       totalReviews: totalReviews || 0,
       hasNext: page < Math.ceil((totalReviews || 0) / limit),
       hasPrev: page > 1
+    }
+
+    // Fetch featured subcategories data
+    let featuredSubcategories: any[] = []
+    
+    try {
+      // Fetch featured subcategories
+      const { data: featuredData, error: featuredError } = await supabase
+        .from('featured_subcategories')
+        .select(`
+          *,
+          subcategories(
+            name,
+            category_id,
+            categories(
+              name,
+              id
+            )
+          )
+        `)
+        .eq('is_active', true)
+      
+      if (featuredError) {
+        console.error('Error fetching featured subcategories:', featuredError)
+      } else {
+        // For each featured subcategory, fetch top 4 businesses
+        const subcategoryPromises = (featuredData || []).map(async (subcategory) => {
+          // First, get all business IDs linked to this subcategory
+          const { data: businessLinks, error: linksError } = await supabase
+            .from('business_subcategories')
+            .select('business_id')
+            .eq('subcategory_id', subcategory.subcategory_id)
+            
+          if (linksError) {
+            console.error(`Error fetching business links for subcategory ${subcategory.subcategory_id}:`, linksError)
+            return {
+              categoryName: `${subcategory.subcategories?.categories?.name || 'Unknown'} - ${subcategory.subcategories?.name || 'Unknown'}`,
+              categoryId: subcategory.subcategories?.category_id || null,
+              subcategoryId: subcategory.subcategory_id || null,
+              subcategoryName: subcategory.subcategories?.name || null,
+              businesses: []
+            }
+          }
+          
+          const businessIds = businessLinks?.map(link => link.business_id) || []
+          
+          if (businessIds.length === 0) {
+            return {
+              categoryName: `${subcategory.subcategories?.categories?.name || 'Unknown'} - ${subcategory.subcategories?.name || 'Unknown'}`,
+              categoryId: subcategory.subcategories?.category_id || null,
+              subcategoryId: subcategory.subcategory_id || null,
+              subcategoryName: subcategory.subcategories?.name || null,
+              businesses: []
+            }
+          }
+          
+          // Then, fetch the business details for these IDs
+          const { data: businesses, error: businessesError } = await supabase
+            .from('businesses')
+            .select(`
+              id,
+              business_name,
+              website
+            `)
+            .in('id', businessIds)
+            .eq('is_banned', false)
+
+          if (businessesError) {
+            console.error(`Error fetching businesses for subcategory ${subcategory.subcategory_id}:`, businessesError)
+            return {
+              categoryName: `${subcategory.subcategories?.categories?.name || 'Unknown'} - ${subcategory.subcategories?.name || 'Unknown'}`,
+              categoryId: subcategory.subcategories?.category_id || null,
+              subcategoryId: subcategory.subcategory_id || null,
+              subcategoryName: subcategory.subcategories?.name || null,
+              businesses: []
+            }
+          }
+          
+          // Fetch reviews for these businesses
+          const { data: reviews, error: reviewsError } = await supabase
+            .from('reviews')
+            .select('reviewee_id, rating')
+            .in('reviewee_id', businessIds)
+            
+          if (reviewsError) {
+            console.error(`Error fetching reviews for businesses in subcategory ${subcategory.subcategory_id}:`, reviewsError)
+            return {
+              categoryName: `${subcategory.subcategories?.categories?.name || 'Unknown'} - ${subcategory.subcategories?.name || 'Unknown'}`,
+              categoryId: subcategory.subcategories?.category_id || null,
+              subcategoryId: subcategory.subcategory_id || null,
+              subcategoryName: subcategory.subcategories?.name || null,
+              businesses: []
+            }
+          }
+          
+          // Calculate average ratings and review counts
+          const businessStats: Record<string, { totalRating: number, count: number }> = {}
+          
+          reviews?.forEach(review => {
+            if (!businessStats[review.reviewee_id]) {
+              businessStats[review.reviewee_id] = { totalRating: 0, count: 0 }
+            }
+            businessStats[review.reviewee_id].totalRating += review.rating
+            businessStats[review.reviewee_id].count += 1
+          })
+          
+          // Filter businesses with at least 3 reviews and calculate averages
+          const filteredBusinesses = businesses
+            ?.map(business => {
+              const stats = businessStats[business.id]
+              if (!stats || stats.count < 3) return null
+              
+              return {
+                id: business.id,
+                business_name: business.business_name || '',
+                website: business.website || null,
+                rating: stats.totalRating / stats.count,
+                review_count: stats.count
+              }
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null)
+            ?.sort((a, b) => b.rating - a.rating || b.review_count - a.review_count)
+            .slice(0, 4) || [] // Limit to 4 businesses per subcategory
+          
+          return {
+            categoryName: `${subcategory.subcategories?.categories?.name || 'Unknown'} - ${subcategory.subcategories?.name || 'Unknown'}`,
+            categoryId: subcategory.subcategories?.category_id || null,
+            subcategoryId: subcategory.subcategory_id || null,
+            subcategoryName: subcategory.subcategories?.name || null,
+            businesses: filteredBusinesses
+          }
+        })
+        
+        // Wait for all subcategory promises to resolve
+        featuredSubcategories = await Promise.all(subcategoryPromises)
+      }
+    } catch (error) {
+      console.error('Error processing featured subcategories:', error)
     }
 
     // Return the response with all data
@@ -233,6 +390,7 @@ export async function GET(request: Request) {
       categories: categoriesWithCounts,
       featuredServices: featuredServices,
       recentReviews: recentReviews,
+      bestInCategories: featuredSubcategories, // This is now the featured subcategories with top businesses
       pagination: pagination
     })
   } catch (error) {

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useBannedUserCheck } from '@/hooks/useBannedUserCheck'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Footer } from '@/components/footer'
 
 interface ProfileData {
   id: string
@@ -326,6 +327,7 @@ export default function UserProfilePage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   )
 }

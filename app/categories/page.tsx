@@ -6,6 +6,28 @@ import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import Link from "next/link"
 import { useBannedUserCheck } from "@/hooks/useBannedUserCheck"
+import { Footer } from "@/components/footer"
+import { 
+  Shirt, 
+  Hotel, 
+  Utensils, 
+  TabletSmartphone, 
+  Folder, 
+  Hospital, 
+  ShoppingBag, 
+  Briefcase, 
+  Drama, 
+  Car, 
+  Home, 
+  Sparkles, 
+  Dumbbell, 
+  Laptop, 
+  Plane, 
+  Book, 
+  Wallet, 
+  PawPrint,
+  Stethoscope
+} from 'lucide-react'
 
 interface Subcategory {
   id: string
@@ -59,6 +81,29 @@ export default function CategoriesPage() {
         category.name.toLowerCase().includes(searchQuery.toLowerCase()),
     ),
   })).filter((cat) => cat.subcategories.length > 0 || cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+
+  // Map category icon values to Lucide React components
+  const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
+    "shirt": Shirt,
+    "hotel": Hotel,
+    "utensils": Utensils,
+    "tablet-smartphone": TabletSmartphone,
+    "tooth": Stethoscope,
+    "folder": Folder,
+    "hospital": Hospital,
+    "shopping-bag": ShoppingBag,
+    "briefcase": Briefcase,
+    "drama": Drama,
+    "car": Car,
+    "home": Home,
+    "sparkles": Sparkles,
+    "dumbbell": Dumbbell,
+    "laptop": Laptop,
+    "plane": Plane,
+    "book": Book,
+    "wallet": Wallet,
+    "paw-print": PawPrint,
+  }
 
   if (loading) {
     return (
@@ -131,29 +176,39 @@ export default function CategoriesPage() {
                   className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   {/* Category Header */}
-                  <div className={`${category.bg_color || "bg-gray-100"} dark:bg-slate-800 px-6 py-8 text-center`}>
-                    <div className="text-4xl mb-2">{category.icon || "📁"}</div>
+                  <Link 
+                    href={`/explore?category=${category.id}`}
+                    className={`${category.bg_color || "bg-gray-100"} dark:bg-slate-800 px-6 py-8 text-center block hover:opacity-90 transition-opacity`}
+                  >
+                    <div className="text-4xl mb-2 flex justify-center">
+                      {(() => {
+                        const IconComponent = iconComponents[category.icon || ""] || Folder;
+                        return <IconComponent className="w-8 h-8" />;
+                      })()}
+                    </div>
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">{category.name}</h3>
-                  </div>
+                  </Link>
 
                   {/* Subcategories List */}
                   <div className="divide-y divide-slate-200 dark:divide-slate-700">
                     {category.subcategories.map((subcategory) => (
                       <Link
                         key={subcategory.id}
-                        href={`/explore?subcategory=${encodeURIComponent(subcategory.name)}`}
+                        href={`/explore?category=${category.id}&subcategory=${encodeURIComponent(subcategory.name)}`}
                         className="block px-6 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                       >
                         {subcategory.name}
                       </Link>
                     ))}
                   </div>
+
                 </div>
               ))}
             </div>
           )}
         </div>
       </main>
+      <Footer />
     </>
   )
 }

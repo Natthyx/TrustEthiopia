@@ -4,31 +4,30 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "next-themes"
-import { Footer } from "@/components/footer"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ReviewTrust - Service Reviews & Ratings",
+  title: "Trust Ethiopia - Service Reviews & Ratings",
   description:
-    "Discover trusted reviews of services and businesses. Share your experience and help others make informed decisions.",
+    "Discover trusted reviews of services and businesses in Ethiopia. Share your experience and help others make informed decisions.",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/trustethiiopia.png",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/trustethiiopia.png",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
+        url: "/trustethiiopia.png",
         type: "image/svg+xml",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: "/trustethiiopia.png",
   },
 }
 
@@ -63,7 +62,7 @@ export default function RootLayout({
         >
             <div className="flex flex-col min-h-screen">
               <main>{children}</main>
-              <Footer />
+              
             </div>
           <Analytics />
         </ThemeProvider>

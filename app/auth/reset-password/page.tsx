@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Footer } from "@/components/footer"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -179,6 +180,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   )
 }

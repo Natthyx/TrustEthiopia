@@ -207,7 +207,7 @@ export default function ReviewReplyPage() {
         <Navbar />
         <main className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar role="business" />
-          <div className="flex-1 ml-64 p-8">
+          <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
@@ -222,7 +222,7 @@ export default function ReviewReplyPage() {
       <Navbar />
       <main className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar role="business" />
-        <div className="flex-1 ml-64 p-8">
+        <div className="flex-1 md:ml-64 p-8 pb-24 md:pb-8">
           <div className="mb-6">
             <Button 
               variant="ghost" 
@@ -232,17 +232,17 @@ export default function ReviewReplyPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Reviews
             </Button>
-            <h1 className="text-3xl font-bold">Review Reply</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Review Reply</h1>
             <p className="text-muted-foreground mt-2">Respond to customer feedback</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Review Details */}
             <div className="lg:col-span-2">
-              <Card className="p-6">
-                <div className="flex items-start gap-4">
+              <Card className="p-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="font-semibold">{review?.reviewer?.name || "Anonymous"}</h3>
                       {review?.is_verified ? (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>
@@ -253,7 +253,7 @@ export default function ReviewReplyPage() {
                     <p className="text-xs text-muted-foreground mb-3">
                       {review?.created_at ? new Date(review.created_at).toLocaleDateString() : "Unknown date"}
                     </p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <RatingStars rating={review?.rating || 0} />
                       <Button 
                         variant="ghost" 
@@ -357,7 +357,7 @@ export default function ReviewReplyPage() {
                   <h3 className="font-semibold">Previous Replies</h3>
                   {comments.map((comment) => (
                     <Card key={comment.id} className="p-4 bg-muted/30">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h4 className="text-sm font-medium">{comment.commenter?.name || "Business Owner"}</h4>
                         <span className="text-xs text-muted-foreground">
                           {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : "Unknown date"}
@@ -370,7 +370,7 @@ export default function ReviewReplyPage() {
               )}
 
               {/* Reply Form */}
-              <Card className="p-6 mt-6">
+              <Card className="p-4 mt-6">
                 <h3 className="font-semibold mb-4">Add Your Reply</h3>
                 <form onSubmit={handleReplySubmit}>
                   <div className="mb-4">
@@ -386,7 +386,7 @@ export default function ReviewReplyPage() {
                     />
                   </div>
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={saving || !replyText.trim()}>
+                    <Button type="submit" disabled={saving || !replyText.trim()} className="w-full sm:w-auto">
                       {saving ? "Sending..." : "Send Reply"}
                     </Button>
                   </div>
@@ -396,7 +396,7 @@ export default function ReviewReplyPage() {
 
             {/* Help Section */}
             <div>
-              <Card className="p-6">
+              <Card className="p-4">
                 <h3 className="font-semibold mb-4">Tips for Responding</h3>
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">

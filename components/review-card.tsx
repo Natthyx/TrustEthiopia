@@ -55,21 +55,21 @@ export function ReviewCard({
 
   return (
     <div className="space-y-4">
-      <Card className="p-6">
-        <div className="flex gap-4">
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Avatar className="h-10 w-10">
             <AvatarImage src={avatar} />
             <AvatarFallback>{author.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{author}</h3>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-semibold truncate">{author}</h3>
                   {verified ? (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded whitespace-nowrap">Verified</span>
                   ) : (
-                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Not Verified</span>
+                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded whitespace-nowrap">Not Verified</span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">{date}</p>
@@ -80,7 +80,7 @@ export function ReviewCard({
             <h4 className="font-medium mt-3 text-sm">{title}</h4>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{content}</p>
 
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
+            <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-border">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -118,16 +118,16 @@ export function ReviewCard({
 
       {/* Collapsible Replies */}
       {hasReplies && isRepliesOpen && (
-        <div className="ml-12 space-y-3">
+        <div className="ml-0 sm:ml-12 space-y-3">
           {replies.map((reply, idx) => (
             <Card key={reply.id ?? idx} className="p-4 bg-muted/30">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>{reply.author.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h4 className="text-sm font-medium">{reply.author}</h4>
                       <span className="text-xs text-muted-foreground">{reply.date}</span>
                     </div>

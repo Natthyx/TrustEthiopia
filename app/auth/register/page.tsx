@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { registerUser, registerBusiness } from "@/app/auth/actions"
+import { Footer } from "@/components/footer"
 
 export default function RegisterPage() {
   const [userType, setUserType] = useState<"user" | "business">("user")
@@ -328,13 +329,7 @@ export default function RegisterPage() {
                   <div className="flex items-start gap-2">
                     <Checkbox id="terms" className="mt-1" required />
                     <Label htmlFor="terms" className="text-sm cursor-pointer">
-                      I agree to the Terms of Service and Privacy Policy
-                    </Label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Checkbox id="news" className="mt-1" />
-                    <Label htmlFor="news" className="text-sm cursor-pointer">
-                      Send me updates and special offers
+                      I agree to the Terms of Service and <Link href="/terms">Privacy Policy</Link>
                     </Label>
                   </div>
                   
@@ -368,6 +363,7 @@ export default function RegisterPage() {
           </p>
         </div>
       </main>
+      <Footer />
     </>
   )
 }

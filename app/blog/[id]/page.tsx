@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, User, Clock, Share2, Heart } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
+import { Footer } from "@/components/footer"
 
 interface BlogPost {
   id: string
@@ -145,6 +146,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           </div>
         </article>
       </main>
+      <Footer />
     </>
   )
 }

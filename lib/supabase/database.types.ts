@@ -618,6 +618,38 @@ export type Database = {
           }
         ]
       }
+      featured_subcategories: {
+        Row: {
+          id: string
+          subcategory_id: string
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          subcategory_id: string
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          subcategory_id?: string
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_subcategories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       landing_stats: {
         Row: {
           id: string
@@ -649,6 +681,7 @@ export type Database = {
     Functions: {
       [_ in never]: never
     }
+
     Enums: {
       [_ in never]: never
     }
