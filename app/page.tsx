@@ -142,7 +142,7 @@ export default function HomePage() {
         {/* Business Growth Promotion Section */}
         <section className="px-4 bg-background py-12">
           <div className="container-app mx-auto px-4">
-            <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="bg-primary rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">Looking to grow your business?</h3>
                 <p className="text-white/80">Strengthen your reputation with reviews on Trust Ethiopia.</p>
@@ -170,7 +170,7 @@ export default function HomePage() {
         )}
 
         {/* About Trust Ethiopia */}
-        <section className="py-16 px-4 bg-gradient-to-r from-primary to-accent text-white">
+        <section className="py-16 px-4 bg-primary text-white">
           <div className="container-app max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Help millions make
               the right choice</h2>

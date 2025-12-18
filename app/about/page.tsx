@@ -81,15 +81,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="py-16 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+        <section className="py-16 px-4 bg-primary text-primary-foreground">
           <div className="container-app max-w-4xl mx-auto text-center">
             <p className="text-lg mb-8 text-primary-foreground/80">
               Trust Ethiopia is a user-powered review
               platform and symbol of trust.
             </p>
-            <p className="text-xl mb-8 text-primary-foreground/80">
-              We're Trust Ethiopia
-            </p>
+            <h2 className="text-3xl font-bold mb-4">We are Trust Ethiopia</h2>
             </div>
         </section>
 
@@ -169,7 +167,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="py-16 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+        <section className="py-16 px-4 bg-primary text-primary-foreground">
           <div className="container-app max-w-4xl mx-auto text-center">
             <p className="mb-8 text-primary-foreground/80">
               Trust Ethiopia is a user-powered review platform dedicated to building a culture of trust, transparency and accountability in Ethiopia's business community. From any business Trust Ethiopia is your reliable guide to discovering businesses that care about quality and reputation. Join us in shaping a more trusted Ethiopia-one review at a time.
@@ -203,7 +201,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+        <section className="py-16 px-4 bg-primary text-primary-foreground">
           <div className="container-app max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
             <p className="mb-8 text-primary-foreground/80">

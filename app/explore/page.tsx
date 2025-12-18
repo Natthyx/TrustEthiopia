@@ -54,12 +54,20 @@ export default function ExplorePage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const searchParams = useSearchParams()
   
-  // Get subcategory from URL params
+  // Get parameters from URL
   const subcategoryParam = searchParams.get('subcategory')
   const categoryParam = searchParams.get('category')
+  const searchQueryParam = searchParams.get('search')
 
   // Use URL parameter as the source of truth for selected category
   const selectedCategory = categoryParam || "all"
+
+  // Initialize search query from URL parameter
+  useEffect(() => {
+    if (searchQueryParam) {
+      setSearchQuery(searchQueryParam)
+    }
+  }, [searchQueryParam])
 
   useEffect(() => {
     fetchCategories()
@@ -117,7 +125,7 @@ export default function ExplorePage() {
         category: business.category || "Service", // Use real category
         rating: business.rating || 0,
         reviewCount: business.reviewCount || 0,
-        location: business.location || "",
+        location: business.location || business.address || "",
         description: business.description || ""
       }))
       
@@ -143,6 +151,20 @@ export default function ExplorePage() {
     window.history.replaceState({}, '', `${window.location.pathname}?${params}`)
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Update URL with search query
+    const params = new URLSearchParams(window.location.search)
+    if (searchQuery.trim()) {
+      params.set('search', searchQuery.trim())
+    } else {
+      params.delete('search')
+    }
+    // Reset to first page when search changes
+    params.set('page', '1')
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`)
+  }
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     // Scroll to top when changing pages
@@ -157,7 +179,7 @@ export default function ExplorePage() {
           {/* Header with Breadcrumbs */}
           <div className="mb-8">
             {/* Breadcrumb Navigation */}
-            {(categoryParam || subcategoryParam) && (
+            {(categoryParam || subcategoryParam || searchQueryParam) && (
               <nav className="mb-4">
                 <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <li>
@@ -194,23 +216,37 @@ export default function ExplorePage() {
                       </li>
                     </>
                   )}
+                  {searchQueryParam && (
+                    <>
+                      <li>/</li>
+                      <li>
+                        <span className="text-foreground">
+                          Search: "{searchQueryParam}"
+                        </span>
+                      </li>
+                    </>
+                  )}
                 </ol>
               </nav>
             )}
             
             <h1 className="text-3xl font-bold mb-2">
-              {subcategoryParam 
+              {searchQueryParam 
+                ? `Search Results for "${searchQueryParam}"`
+                : subcategoryParam 
                 ? subcategoryParam 
                 : categoryParam && categories.length > 0
-                  ? `Best in ${categories.find(cat => cat.id === categoryParam)?.name || 'Category'}`
-                  : 'Explore Services'}
+                ? `Best in ${categories.find(cat => cat.id === categoryParam)?.name || 'Category'}`
+                : 'Explore Services'}
             </h1>
             <p className="text-muted-foreground">
-              {subcategoryParam 
+              {searchQueryParam 
+                ? `Found ${pagination.totalCount} businesses matching "${searchQueryParam}"`
+                : subcategoryParam 
                 ? `Discover and review businesses in ${subcategoryParam}` 
                 : categoryParam && categories.length > 0
-                  ? `Discover the best businesses in ${categories.find(cat => cat.id === categoryParam)?.name || 'this category'}`
-                  : 'Discover and review thousands of businesses'}
+                ? `Discover the best businesses in ${categories.find(cat => cat.id === categoryParam)?.name || 'this category'}`
+                : 'Discover and review thousands of businesses'}
             </p>
           </div>
 
@@ -218,12 +254,14 @@ export default function ExplorePage() {
           <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search services..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <form onSubmit={handleSearch} className="w-full">
+                <Input
+                  placeholder="Search services, locations, categories..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </form>
             </div>
             <Select value={selectedCategory} onValueChange={handleCategoryChange}>
               <SelectTrigger className="w-full md:w-40">

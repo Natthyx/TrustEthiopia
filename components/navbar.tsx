@@ -14,9 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, Search, LogIn, User, Settings, LogOut, AlertTriangle } from 'lucide-react'
+import { Menu,  LogIn, User, Settings, LogOut, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { ModeToggle } from '@/components/mode-toggle'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 
 interface Profile {
@@ -163,10 +162,6 @@ export function Navbar() {
 
               {/* Desktop: Show placeholder avatar */}
               <div className="hidden md:flex items-center gap-4">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Search className="w-4 h-4" />
-                </Button>
-                <ModeToggle />
                 <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
               </div>
 
@@ -220,10 +215,6 @@ export function Navbar() {
             </div>
 
             <div className="hidden md:flex items-center gap-4">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Search className="w-4 h-4" />
-              </Button>
-              <ModeToggle />
 
               {!profile ? (
                 <>
@@ -303,10 +294,6 @@ export function Navbar() {
                     </Link>
                   ))}
                   <div className="border-t pt-4 mt-4 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Theme</span>
-                      <ModeToggle />
-                    </div>
                     {!profile ? (
                       <div className="flex flex-col gap-2">
                         <Link 
