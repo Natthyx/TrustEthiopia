@@ -17,6 +17,7 @@ interface OwnerProfile {
   name: string | null
   email: string | null
   profile_image_url: string | null
+  phone: string | null
 }
 
 interface Review {
@@ -54,7 +55,7 @@ export default function BusinessSettingsPage() {
         // Check if user is business
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role, profile_image_url')
+          .select('id, name, email, role, profile_image_url, phone')
           .eq('id', user.id)
           .single()
 
@@ -63,12 +64,7 @@ export default function BusinessSettingsPage() {
           return
         }
 
-        setProfile({
-          id: profileData.id,
-          name: profileData.name,
-          email: profileData.email,
-          profile_image_url: profileData.profile_image_url
-        })
+        setProfile(profileData)
 
         // Fetch reviews written by this business owner
         const { data: reviewsData, error: reviewsError } = await supabase
@@ -121,14 +117,36 @@ export default function BusinessSettingsPage() {
 
     setSaving(true)
     try {
+      // Validate phone number format (E.164) if provided
+      if (profile.phone && !/^\+[1-9][0-9]{1,14}$/.test(profile.phone)) {
+        toast.error('Invalid phone number format. Please use E.164 format (e.g., +1234567890).')
+        setSaving(false)
+        return
+      }
+      
+      // Update profile in database
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: profile.name
+          name: profile.name,
+          phone: profile.phone || null,
+          updated_at: new Date().toISOString()
         })
         .eq('id', profile.id)
 
       if (error) throw error
+
+      // Update phone in auth user if changed
+      if (profile.phone) {
+        const { error: authError } = await supabase.auth.updateUser({
+          phone: profile.phone
+        })
+        
+        if (authError) {
+          console.error('Auth phone update error:', authError)
+          toast.error('Profile updated but failed to update phone in authentication system.')
+        }
+      }
 
       toast.success("Profile updated successfully.")
     } catch (error) {
@@ -240,9 +258,21 @@ export default function BusinessSettingsPage() {
                     type="email"
                     value={profile?.email || ""}
                     onChange={handleProfileChange}
-                    disabled
+                    placeholder="johndoe@example.com"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                  
+                </div>
+                
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={profile?.phone || ""}
+                    onChange={handleProfileChange}
+                    placeholder="+1234567890"
+                  />
                 </div>
                 
                 <div className="pt-4">

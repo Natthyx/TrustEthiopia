@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, MoreVertical, Shield, Ban, Check, Eye } from "lucide-react"
+import { Search, MoreVertical, Shield, Ban, Check, Eye, Phone } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +34,7 @@ interface User {
   is_banned: boolean | null
   created_at: string | null
   review_count: number
+  phone: string | null
 }
 
 export default function AdminUsersPage() {
@@ -104,9 +105,11 @@ export default function AdminUsersPage() {
     if (!searchTerm) {
       setFilteredUsers(users)
     } else {
+      const term = searchTerm.toLowerCase()
       const filtered = users.filter(user => 
-        (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+        (user.name && user.name.toLowerCase().includes(term)) ||
+        (user.email && user.email.toLowerCase().includes(term)) ||
+        (user.phone && user.phone.toLowerCase().includes(term))
       )
       setFilteredUsers(filtered)
     }
@@ -225,7 +228,7 @@ export default function AdminUsersPage() {
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder="Search users..." 
+                placeholder="Search users by name, email, or phone..." 
                 className="pl-10" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -240,6 +243,7 @@ export default function AdminUsersPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Reviews</TableHead>
                   <TableHead>Status</TableHead>
@@ -253,6 +257,16 @@ export default function AdminUsersPage() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name || "No name"}</TableCell>
                       <TableCell>{user.email || "No email"}</TableCell>
+                      <TableCell>
+                        {user.phone ? (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-3 h-3 text-muted-foreground" />
+                            <span>{user.phone}</span>
+                          </div>
+                        ) : (
+                          "No phone"
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="secondary">{user.role || "user"}</Badge>
                       </TableCell>
@@ -311,7 +325,7 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -341,6 +355,19 @@ export default function AdminUsersPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
                   <p className="font-medium">{selectedUser.email || "Not provided"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="font-medium">
+                    {selectedUser.phone ? (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-muted-foreground" />
+                        <span>{selectedUser.phone}</span>
+                      </div>
+                    ) : (
+                      "Not provided"
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Role</p>

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import ProfileImageUpload from '@/components/profile-image-upload'
 import { Footer } from '@/components/footer'
+import { toast } from 'sonner'
 
 interface ProfileData {
   id: string
@@ -17,6 +18,7 @@ interface ProfileData {
   email: string | null
   role: string | null
   profile_image_url: string | null
+  phone: string | null
 }
 
 export default function UserSettingsPage() {
@@ -25,6 +27,7 @@ export default function UserSettingsPage() {
   const [updating, setUpdating] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    phone: ''
   })
   const [updateSuccess, setUpdateSuccess] = useState(false)
   const router = useRouter()
@@ -44,33 +47,28 @@ export default function UserSettingsPage() {
         // Check if user is banned by fetching profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, role, is_banned, profile_image_url')
+          .select('id, name, email, role, is_banned, profile_image_url, phone')
           .eq('id', user.id)
           .single()
 
         if (profileError) {
-          console.error('Error fetching profile:', profileError)
-          router.push('/auth/login')
-          return
+          throw profileError
         }
 
-        // If user is banned, redirect to public page
+        // Redirect banned users
         if (profileData.is_banned) {
-          // Sign out the user
-          await supabase.auth.signOut()
-          router.push('/?message=banned')
+          router.push('/auth/login?message=banned')
           return
         }
 
-        // Fetch profile data
         setProfile(profileData)
         setFormData({
           name: profileData.name || '',
+          phone: profileData.phone || ''
         })
-
         setLoading(false)
       } catch (error) {
-        console.error('Error:', error)
+        console.error('Error fetching profile:', error)
         router.push('/auth/login')
       }
     }
@@ -80,38 +78,54 @@ export default function UserSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!profile) return
+
     setUpdating(true)
     setUpdateSuccess(false)
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/auth/login')
+      // Validate phone number format (E.164) if provided
+      if (formData.phone && !/^\+[1-9][0-9]{1,14}$/.test(formData.phone)) {
+        toast.error('Invalid phone number format. Please use E.164 format (e.g., +1234567890).')
+        setUpdating(false)
         return
       }
-
-      // Update profile
+      
+      // Update profile in database
       const { error } = await supabase
         .from('profiles')
         .update({
           name: formData.name,
+          phone: formData.phone || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id)
+        .eq('id', profile.id)
 
       if (error) {
         throw new Error(error.message)
       }
 
+      // Update phone in auth user if changed
+      if (formData.phone !== profile.phone) {
+        const { error: authError } = await supabase.auth.updateUser({
+          phone: formData.phone || undefined
+        })
+        
+        if (authError) {
+          console.error('Auth phone update error:', authError)
+          toast.error('Profile updated but failed to update phone in authentication system.')
+        }
+      }
+
       // Show success message
       setUpdateSuccess(true)
+      toast.success('Profile updated successfully!')
 
       // Refresh profile data
       setProfile({
-        ...profile!,
+        ...profile,
         name: formData.name,
+        phone: formData.phone || null
       })
 
       // Hide success message after 3 seconds
@@ -120,6 +134,7 @@ export default function UserSettingsPage() {
       }, 3000)
     } catch (error) {
       console.error('Error updating profile:', error)
+      toast.error('Failed to update profile. Please try again.')
       setUpdateSuccess(false)
     } finally {
       setUpdating(false)
@@ -189,9 +204,9 @@ export default function UserSettingsPage() {
                     id="email"
                     type="email"
                     value={profile?.email || ''}
-                    disabled
+                    onChange={handleInputChange}
+                    placeholder="Enter your email"
                   />
-                  <p className="text-sm text-muted-foreground">Email cannot be changed</p>
                 </div>
 
                 <div className="space-y-2">
@@ -202,6 +217,18 @@ export default function UserSettingsPage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="+1234567890"
                   />
                 </div>
 

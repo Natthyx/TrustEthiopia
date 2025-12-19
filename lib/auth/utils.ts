@@ -55,3 +55,66 @@ export const signOut = async (): Promise<void> => {
   const supabase = createSupabaseClient()
   await supabase.auth.signOut()
 }
+
+
+export async function updateUserPhone(userId: string, phone: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createSupabaseClient()
+  
+  try {
+    // Validate phone number format (E.164)
+    const phoneRegex = /^\+[1-9][0-9]{1,14}$/
+    if (!phoneRegex.test(phone)) {
+      return { success: false, error: 'Invalid phone number format. Please use E.164 format (e.g., +1234567890).' }
+    }
+    
+    // Update phone in auth user
+    const { error: authError } = await supabase.auth.updateUser({
+      phone: phone
+    })
+    
+    if (authError) {
+      console.error('Auth phone update error:', authError)
+      return { success: false, error: 'Failed to update phone number in authentication system.' }
+    }
+    
+    // Update phone in profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ phone: phone })
+      .eq('id', userId)
+    
+    if (profileError) {
+      console.error('Profile phone update error:', profileError)
+      return { success: false, error: 'Failed to update phone number in profile.' }
+    }
+    
+    return { success: true }
+  } catch (err) {
+    console.error('Unexpected phone update error:', err)
+    return { success: false, error: 'An unexpected error occurred while updating phone number.' }
+  }
+}
+
+/**
+ * Check if user has a phone number linked
+ */
+export async function userHasPhone(userId: string): Promise<boolean> {
+  const supabase = await createSupabaseClient()
+  
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('phone')
+      .eq('id', userId)
+      .single()
+    
+    if (error || !profile) {
+      return false
+    }
+    
+    return !!profile.phone
+  } catch (err) {
+    console.error('Error checking user phone:', err)
+    return false
+  }
+}

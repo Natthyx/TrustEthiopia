@@ -33,7 +33,12 @@ export async function GET(request: Request) {
       if (!error) {
         // Construct proper redirect URL
         const redirectUrl = new URL('/auth/login', request.url);
-        redirectUrl.searchParams.set('message', 'email_verified');
+        // Different message based on verification type
+        if (type === 'sms') {
+          redirectUrl.searchParams.set('message', 'phone_verified');
+        } else {
+          redirectUrl.searchParams.set('message', 'email_verified');
+        }
         return NextResponse.redirect(redirectUrl.toString());
       }
     }
@@ -43,7 +48,7 @@ export async function GET(request: Request) {
     redirectUrl.searchParams.set('error', 'invalid_token');
     return NextResponse.redirect(redirectUrl.toString());
   } catch (err) {
-    console.error("Email verification error:", err);
+    console.error("Verification error:", err);
     const redirectUrl = new URL('/auth/login', request.url);
     redirectUrl.searchParams.set('error', 'verification_failed');
     return NextResponse.redirect(redirectUrl.toString());

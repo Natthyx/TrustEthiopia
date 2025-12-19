@@ -48,7 +48,8 @@ export async function GET(req: Request) {
       email,
       role,
       is_banned,
-      created_at
+      created_at,
+      phone
     `)
     .order('created_at', { ascending: false });
 

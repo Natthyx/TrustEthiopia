@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RatingStars } from "@/components/rating-stars"
-import { Plus, X, ChevronDown, ChevronRight } from "lucide-react"
+import { Plus, X, ChevronDown, ChevronRight, Phone } from "lucide-react"
 import { BusinessHoursInput } from "@/components/business-hours-input"
 
 interface BusinessData {
@@ -175,12 +175,21 @@ export default function BusinessProfile() {
         }
 
         // Fetch categories
-        const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
-        setCategories(categoriesData || [])
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name')
+
+        if (!categoriesError && categoriesData) {
+          setCategories(categoriesData)
+        }
 
         // Fetch subcategories
-        const { data: subcategoriesData } = await supabase.from('subcategories').select('id, name, category_id').order('name')
-        setSubcategories(subcategoriesData || [])
+        const { data: subcategoriesData , error: subcategoriesError} = await supabase.from('subcategories').select('id, name, category_id').order('name')
+        
+        if (!subcategoriesError && subcategoriesData) {
+          setSubcategories(subcategoriesData)
+        }
 
         // Fetch business categories
         const { data: businessCategoriesData } = await supabase
@@ -190,11 +199,14 @@ export default function BusinessProfile() {
         setBusinessCategories(businessCategoriesData || [])
 
         // Fetch business subcategories
-        const { data: businessSubcategoriesData } = await supabase
+        const { data: businessSubcategoriesData, error: businessSubcategoriesError } = await supabase
           .from('business_subcategories')
           .select('subcategory_id')
           .eq('business_id', businessData.id)
-        setBusinessSubcategories(businessSubcategoriesData || [])
+
+        if (!businessSubcategoriesError && businessSubcategoriesData) {
+          setBusinessSubcategories(businessSubcategoriesData)
+        }
 
         // Fetch business documents to determine verification status
         const { data: businessDocumentsData } = await supabase
@@ -509,14 +521,14 @@ export default function BusinessProfile() {
         throw new Error(result.error || 'Failed to set primary image')
       }
 
-      // Update state
-      setPrimaryImageId(imageId)
+      // Update state - unset previous primary, set new one
       setBusinessImages(prev => 
         prev.map(img => ({
           ...img,
           is_primary: img.id === imageId
         }))
       )
+      setPrimaryImageId(imageId)
 
       setSuccess('Primary image updated!')
     } catch (error: any) {

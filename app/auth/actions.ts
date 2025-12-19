@@ -12,6 +12,19 @@ export async function registerUser(data: RegisterUserData) {
   const supabase = await createClient()
 
   try {
+    // Check if user already exists with this email
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', data.email)
+      .maybeSingle()
+    
+    if (fetchError) {
+      console.error('Error checking existing user:', fetchError)
+      // Continue with registration even if check fails
+    } else if (existingUser) {
+      return { error: 'An account is already associated with this email address. Please sign in instead.' }
+    }
     // Sign up the user
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
@@ -27,20 +40,20 @@ export async function registerUser(data: RegisterUserData) {
 
     if (error) {
       console.error('Registration error:', error)
-      if (error.message.includes('anonymous')) {
-        return { error: 'User registration is temporarily disabled. Please contact support.' }
+      if (error.message.includes('identity already exists')) {
+        return { error: 'An account is already associated with this email address. Please sign in instead.' }
       }
       return { error: error.message }
     }
 
-    // If user exists but requires confirmation
-    if (authData.user && !authData.user.identities) {
+    if (authData.user && !authData.user.identities?.length) {
       return { error: 'Account already exists. Please sign in instead.' }
     }
     
 
     // Success → return OK so we can redirect cleanly after
     return { success: true }
+    
 
   } catch (err) {
     console.error('Unexpected registration error:', err)
@@ -49,13 +62,23 @@ export async function registerUser(data: RegisterUserData) {
 }
 
 /**
- * Register a new business
+ * Register a new business (email + password)
  */
 export async function registerBusiness(data: RegisterBusinessData) {
   const supabase = await createClient()
 
   try {
-    // Sign up the business user
+    // Check if user already exists with this email
+    const { data: existingUser } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', data.email)
+      .maybeSingle()
+    
+    if (existingUser) {
+      return { error: 'An account is already associated with this email address. Please sign in instead.' }
+    }
+
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -63,27 +86,44 @@ export async function registerBusiness(data: RegisterBusinessData) {
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
         data: {
           name: data.name,
-          role: "business",
+          role: 'business',
+          businessName: data.businessName,
+          location: data.location,
+          website: data.website,
         }
       },
     })
 
     if (error) {
       console.error('Business registration error:', error)
-      if (error.message.includes('anonymous')) {
-        return { error: 'Business registration is temporarily disabled. Please contact support.' }
+      if (error.message.includes('identity already exists')) {
+        return { error: 'An account is already associated with this email address. Please sign in instead.' }
       }
       return { error: error.message }
     }
 
-    // If user exists but requires confirmation
-    if (authData.user && !authData.user.identities) {
+    if (authData.user && !authData.user.identities?.length) {
       return { error: 'Account already exists. Please sign in instead.' }
     }
 
-    // Success → return OK so we can redirect cleanly after
-    return { success: true }
+    // Create business record immediately after successful signup
+    if (authData.user && data.businessName) {
+      const { error: businessError } = await supabase
+        .from('businesses')
+        .insert({
+          business_name: data.businessName,
+          business_owner_id: authData.user.id,
+          location: data.location || null,
+          website: data.website || null,
+        })
 
+      if (businessError) {
+        console.error('Failed to create business record:', businessError)
+        // Don't fail registration — user can add business later
+      }
+    }
+
+    return { success: true }
   } catch (err) {
     console.error('Unexpected business registration error:', err)
     return { error: 'An unexpected error occurred during business registration. Please try again.' }
@@ -91,7 +131,69 @@ export async function registerBusiness(data: RegisterBusinessData) {
 }
 
 /**
- * Login user
+ * Sign up with phone number (supports user and business)
+ */
+export async function signupWithPhone(
+  phone: string,
+  name: string,
+  role: 'user' | 'business',
+  email?: string,
+  businessName?: string,
+  location?: string,
+  website?: string
+) {
+  const supabase = await createClient()
+  
+  try {
+    // Check if user already exists with this phone
+    const { data: existingUser } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', phone)
+      .maybeSingle()
+    
+    if (existingUser) {
+      return { error: 'An account is already associated with this phone number. Please sign in instead.' }
+    }
+
+    const phoneRegex = /^\+[1-9][0-9]{1,14}$/
+    if (!phoneRegex.test(phone)) {
+      return { error: 'Invalid phone number format. Please use E.164 format (e.g., +1234567890).' }
+    }
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+      options: {
+        shouldCreateUser: true,
+        data: {
+          name,
+          email,
+          phone,
+          role,
+          businessName,
+          location,
+          website,
+        }
+      }
+    })
+    
+    if (error) {
+      console.error('Phone signup error:', error)
+      if (error.message.includes('identity already exists')) {
+        return { error: 'An account is already associated with this phone number. Please sign in instead.' }
+      }
+      return { error: error.message }
+    }
+    
+    return { success: true, message: "OTP sent! Check your phone." }
+  } catch (err) {
+    console.error('Unexpected phone signup error:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+/**
+ * Login user with email and password
  */
 export async function loginUser(email: string, password: string) {
   const supabase = await createClient()
@@ -152,6 +254,136 @@ export async function loginUser(email: string, password: string) {
   } catch (err) {
     console.error('Unexpected login error:', err)
     return { error: 'An unexpected error occurred during login. Please try again.' }
+  }
+}
+
+/**
+ * Send OTP to phone number
+ */
+export async function sendPhoneOTP(phone: string) {
+  const supabase = await createClient()
+  
+  try {
+    // Validate phone number format (E.164)
+    const phoneRegex = /^\+[1-9][0-9]{1,14}$/
+    if (!phoneRegex.test(phone)) {
+      return { error: 'Invalid phone number format. Please use E.164 format (e.g., +1234567890).' }
+    }
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: phone,
+      options: {
+        shouldCreateUser: false // For login, don't create user
+      }
+    })
+    
+    if (error) {
+      console.error('Phone OTP send error:', error)
+      // Handle specific error cases
+      if (error.message.includes('rate limit')) {
+        return { error: 'Too many attempts. Please try again later.' }
+      }
+      return { error: error.message }
+    }
+    
+    return { success: true }
+  } catch (err) {
+    console.error('Unexpected phone OTP error:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+/**
+ * Verify phone OTP (and create business record if needed)
+ */
+export async function verifyPhoneOTP(phone: string, token: string) {
+  const supabase = await createClient()
+  
+  try {
+    const phoneRegex = /^\+[1-9][0-9]{1,14}$/
+    if (!phoneRegex.test(phone)) {
+      return { error: 'Invalid phone number format.' }
+    }
+    
+    if (!token || token.length !== 6) {
+      return { error: 'Invalid verification code.' }
+    }
+    
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms'
+    })
+    
+    if (error) {
+      console.error('Phone OTP verification error:', error)
+      if (error.message.includes('invalid')) return { error: 'Invalid verification code.' }
+      if (error.message.includes('expired')) return { error: 'Verification code has expired. Please request a new one.' }
+      return { error: error.message }
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { error: 'Failed to authenticate user. Please try again.' }
+    }
+
+    // Check/create profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, is_banned')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile) {
+      const { error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          name: user.user_metadata?.name || null,
+          email: user.user_metadata?.email || null,
+          phone: user.user_metadata?.phone || null,
+          role: user.user_metadata?.role || 'user',
+          is_banned: false,
+        })
+
+      if (createError) {
+        console.error('Profile creation error:', createError)
+        return { error: 'Failed to create user profile. Please contact support.' }
+      }
+    }
+
+    if (profile?.is_banned) {
+      return { error: 'Your account has been banned. Please contact support for assistance.' }
+    }
+
+    // If business user, create business record from metadata
+    if (user.user_metadata?.role === 'business' && user.user_metadata?.businessName) {
+      const { error: businessError } = await supabase
+        .from('businesses')
+        .upsert({
+          business_name: user.user_metadata.businessName,
+          business_owner_id: user.id,
+          location: user.user_metadata.location || null,
+          website: user.user_metadata.website || null,
+        }, { onConflict: 'business_owner_id' })
+
+      if (businessError) {
+        console.error('Failed to create business record:', businessError)
+        // Don't fail login
+      }
+    }
+
+    const redirectPath = getRedirectPath({
+      id: user.id,
+      email: user.email || '',
+      role: (profile?.role || user.user_metadata?.role || 'user') as any,
+    })
+
+    revalidatePath('/', 'layout')
+    return { success: true, redirectPath }
+  } catch (err) {
+    console.error('Unexpected phone OTP verification error:', err)
+    return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
 

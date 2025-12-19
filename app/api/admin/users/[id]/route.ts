@@ -48,7 +48,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .from("profiles")
     .update(body)
     .eq("id", id)
-    .select();
+    .select(`
+      id,
+      name,
+      email,
+      role,
+      is_banned,
+      created_at,
+      phone
+    `);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
