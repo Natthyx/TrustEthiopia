@@ -408,3 +408,120 @@ export async function handleEmailVerification() {
     }
   }
 }
+
+// // Request email change (sends verification email)
+// export async function requestEmailChange(newEmail: string) {
+//   const supabase = await createClient()
+  
+//   try {
+//     const { data: { user } } = await supabase.auth.getUser()
+//     if (!user) return { error: 'Not authenticated' }
+
+//     // Optional: check if email already in use
+//     const { data: existing } = await supabase
+//       .from('profiles')
+//       .select('id')
+//       .eq('email', newEmail)
+//       .maybeSingle()
+
+//     if (existing) return { error: 'Email already in use' }
+
+//     const { error } = await supabase.auth.updateUser({
+//       email: newEmail
+//     })
+
+//     if (error) return { error: error.message }
+
+//     return { success: true, message: 'Verification email sent!' }
+//   } catch (err) {
+//     return { error: 'Failed to request email change' }
+//   }
+// }
+
+// // Request phone change (sends OTP)
+// export async function requestPhoneChange(newPhone: string) {
+//   const supabase = await createClient()
+  
+//   try {
+//     const phoneRegex = /^\+[1-9][0-9]{1,14}$/
+//     if (!phoneRegex.test(newPhone)) {
+//       return { error: 'Invalid phone format' }
+//     }
+
+//     const { data: { user } } = await supabase.auth.getUser()
+//     if (!user) return { error: 'Not authenticated' }
+
+//     const { data: existing } = await supabase
+//       .from('profiles')
+//       .select('id')
+//       .eq('phone', newPhone)
+//       .maybeSingle()
+
+//     if (existing) return { error: 'Phone already in use' }
+
+//     const { error } = await supabase.auth.updateUser({
+//       phone: newPhone
+//     })
+
+//     if (error) return { error: error.message }
+
+//     return { success: true, message: 'OTP sent to new phone!' }
+//   } catch (err) {
+//     return { error: 'Failed to request phone change' }
+//   }
+// }
+
+// // Verify email change (called after user enters code from email)
+// export async function verifyEmailChange(token: string) {
+//   const supabase = await createClient()
+  
+//   try {
+//     const { data: { user }, error: verifyError } = await supabase.auth.verifyOtp({
+//       type: 'email_change',
+//       token,
+//     })
+    
+//     if (verifyError || !user) return { error: 'Invalid or expired code' }
+
+//     // Update profiles table with new verified email
+//     const { error: updateError } = await supabase
+//       .from('profiles')
+//       .update({ email: user.email })
+//       .eq('id', user.id)
+
+//     if (updateError) {
+//       console.error('Failed to update profile email:', updateError)
+//       return { error: 'Failed to save new email' }
+//     }
+
+//     return { success: true, newEmail: user.email }
+//   } catch (err) {
+//     return { error: 'Verification failed' }
+//   }
+// }
+
+// // Verify phone change
+// export async function verifyPhoneChange(phone: string, token: string) {
+//   const supabase = await createClient()
+  
+//   try {
+//     const { data: { user }, error } = await supabase.auth.verifyOtp({
+//       phone,
+//       token,
+//       type: 'phone_change'
+//     })
+
+//     if (error || !user) return { error: 'Invalid or expired code' }
+
+//     const { error: updateError } = await supabase
+//       .from('profiles')
+//       .update({ phone })
+//       .eq('id', user.id)
+
+//     if (updateError) return { error: 'Failed to save new phone' }
+
+//     return { success: true, newPhone: phone }
+//   } catch (err) {
+//     return { error: 'Verification failed' }
+//   }
+// }

@@ -345,11 +345,11 @@ export async function GET(request: Request) {
             businessStats[review.reviewee_id].count += 1
           })
           
-          // Filter businesses with at least 3 reviews and calculate averages
+          // Filter businesses with at least 1 review and calculate averages (changed from 3 to allow more businesses to be featured)
           const filteredBusinesses = businesses
             ?.map(business => {
               const stats = businessStats[business.id]
-              if (!stats || stats.count < 3) return null
+              if (!stats) return null
               
               return {
                 id: business.id,

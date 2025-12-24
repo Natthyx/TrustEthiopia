@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, CheckCircle, XCircle, Eye } from "lucide-react"
+import { Plus } from "lucide-react"
+import { Search, CheckCircle, XCircle, Eye, Edit } from "lucide-react"
 
 interface Business {
   id: string
@@ -19,9 +20,11 @@ interface Business {
   category_name: string | null
   owner_name: string | null
   owner_email: string | null
+  owner_role: string | null
   is_banned: boolean | null
   created_at: string | null
   document_count: number
+  created_by_admin: boolean | null
 }
 
 interface Document {
@@ -251,17 +254,24 @@ export default function AdminBusinessesPage() {
             <p className="text-muted-foreground mt-2">Manage and verify business listings</p>
           </div>
 
-          {/* Search */}
-          <div className="mb-6">
+          {/* Search and Add Business */}
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="Search businesses..." 
-                className="pl-10" 
+                className="pl-10 w-full sm:w-auto" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button 
+              onClick={() => router.push('/admin/businesses/add')}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Business
+            </Button>
           </div>
 
           {/* Table */}
@@ -313,6 +323,17 @@ export default function AdminBusinessesPage() {
                             <Eye className="w-4 h-4" />
                             View
                           </Button>
+                          {business.created_by_admin && business.owner_role === 'admin' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => router.push(`/admin/businesses/${business.id}/edit`)}
+                              className="gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </Button>
+                          )}
                           {business.is_banned ? (
                             <Button
                               size="sm"

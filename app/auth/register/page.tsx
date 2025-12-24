@@ -187,7 +187,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Registration Method */}
-            <div className="flex gap-3 mb-6 p-1 bg-muted rounded-lg">
+            {/* <div className="flex gap-3 mb-6 p-1 bg-muted rounded-lg">
               <button
                 onClick={() => { setRegMethod("email"); setStep(1); setError(null) }}
                 className={`flex-1 py-2 rounded text-sm font-medium flex items-center justify-center gap-2 ${
@@ -204,7 +204,7 @@ export default function RegisterPage() {
               >
                 <Phone className="w-4 h-4" /> Phone
               </button>
-            </div>
+            </div> */}
 
             <form className="space-y-4" onSubmit={handleRegister}>
               {step === 1 ? (

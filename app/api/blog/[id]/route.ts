@@ -17,6 +17,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         status, 
         created_at, 
         updated_at,
+        is_featured,
+        is_trending,
         businesses(business_name)
       `)
       .eq('id', id)
@@ -37,7 +39,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       author: data.businesses?.business_name || 'ReviewTrust Team',
       date: data.created_at ? new Date(data.created_at).toLocaleDateString() : 'Unknown date',
       image: data.thumbnail_image || '/placeholder.svg?key=blog_featured',
-      readTime: Math.max(1, Math.floor((data.content?.length || 0) / 200)) + ' min read'
+      readTime: Math.max(1, Math.floor((data.content?.length || 0) / 200)) + ' min read',
+      is_featured: data.is_featured,
+      is_trending: data.is_trending
     };
 
     return NextResponse.json(blogPost);

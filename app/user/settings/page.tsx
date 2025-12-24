@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label'
 import ProfileImageUpload from '@/components/profile-image-upload'
 import { Footer } from '@/components/footer'
 import { toast } from 'sonner'
+// import VerificationModal from '@/components/verification-modal'
+// import { requestEmailChange, requestPhoneChange } from '@/app/auth/actions'
 
 interface ProfileData {
   id: string
@@ -27,36 +29,29 @@ export default function UserSettingsPage() {
   const [updating, setUpdating] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: ''
   })
-  const [updateSuccess, setUpdateSuccess] = useState(false)
+  const [showPhoneVerification, setShowPhoneVerification] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
         if (userError || !user) {
           router.push('/auth/login')
           return
         }
 
-        // Check if user is banned by fetching profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, name, email, role, is_banned, profile_image_url, phone')
           .eq('id', user.id)
           .single()
 
-        if (profileError) {
-          throw profileError
-        }
-
-        // Redirect banned users
-        if (profileData.is_banned) {
+        if (profileError || profileData.is_banned) {
           router.push('/auth/login?message=banned')
           return
         }
@@ -64,6 +59,7 @@ export default function UserSettingsPage() {
         setProfile(profileData)
         setFormData({
           name: profileData.name || '',
+          email: profileData.email || '',
           phone: profileData.phone || ''
         })
         setLoading(false)
@@ -81,72 +77,76 @@ export default function UserSettingsPage() {
     if (!profile) return
 
     setUpdating(true)
-    setUpdateSuccess(false)
 
     try {
-      // Validate phone number format (E.164) if provided
-      if (formData.phone && !/^\+[1-9][0-9]{1,14}$/.test(formData.phone)) {
-        toast.error('Invalid phone number format. Please use E.164 format (e.g., +1234567890).')
-        setUpdating(false)
-        return
+      let needsPhoneVerification = false
+      let phoneToVerify: string | null = null
+
+      // // Email change → send link
+      // if (formData.email !== profile.email && formData.email.trim()) {
+      //   const result = await requestEmailChange(formData.email.trim())
+      //   if (result.success) {
+      //     toast.success('Verification email sent! Check your inbox.')
+      //   } else {
+      //     toast.error(result.error || 'Failed to send verification email')
+      //     setUpdating(false)
+      //     return
+      //   }
+      // }
+
+      // Phone change → send OTP
+      // if (formData.phone !== profile.phone && formData.phone.trim()) {
+      //   const result = await requestPhoneChange(formData.phone.trim())
+      //   if (result.success) {
+      //     needsPhoneVerification = true
+      //     phoneToVerify = formData.phone.trim()
+      //     toast.success('OTP sent to your new phone!')
+      //   } else {
+      //     toast.error(result.error || 'Failed to send OTP')
+      //     setUpdating(false)
+      //     return
+      //   }
+      // }
+
+      // Update name immediately
+      const nameChanged = formData.name !== profile.name
+      if (nameChanged) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: formData.name,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', profile.id)
+
+        if (error) throw error
+
+        setProfile(prev => prev ? { ...prev, name: formData.name } : null)
+        toast.success('Name updated successfully!')
       }
-      
-      // Update profile in database
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: formData.name,
-          phone: formData.phone || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id)
 
-      if (error) {
-        throw new Error(error.message)
+      // Show phone verification modal if needed
+      if (needsPhoneVerification && phoneToVerify) {
+        setShowPhoneVerification(phoneToVerify)
+      } else if (!needsPhoneVerification && !nameChanged) {
+        toast.info('No changes to save')
       }
-
-      // Update phone in auth user if changed
-      if (formData.phone !== profile.phone) {
-        const { error: authError } = await supabase.auth.updateUser({
-          phone: formData.phone || undefined
-        })
-        
-        if (authError) {
-          console.error('Auth phone update error:', authError)
-          toast.error('Profile updated but failed to update phone in authentication system.')
-        }
-      }
-
-      // Show success message
-      setUpdateSuccess(true)
-      toast.success('Profile updated successfully!')
-
-      // Refresh profile data
-      setProfile({
-        ...profile,
-        name: formData.name,
-        phone: formData.phone || null
-      })
-
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setUpdateSuccess(false)
-      }, 3000)
     } catch (error) {
-      console.error('Error updating profile:', error)
-      toast.error('Failed to update profile. Please try again.')
-      setUpdateSuccess(false)
+      console.error('Error:', error)
+      toast.error('Failed to update profile')
     } finally {
       setUpdating(false)
     }
   }
 
+  const handlePhoneVerificationSuccess = (newPhone: string) => {
+    setProfile(prev => prev ? { ...prev, phone: newPhone } : null)
+    setFormData(prev => ({ ...prev, phone: newPhone }))
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleImageUpdate = (imageUrl: string | null) => {
@@ -180,15 +180,11 @@ export default function UserSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardDescription>
+                Update your details. Email changes require clicking a link sent to your inbox. Phone changes require OTP.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {updateSuccess && (
-                <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
-                  Profile updated successfully!
-                </div>
-              )}
-              
               <div className="flex flex-col items-center mb-6">
                 <ProfileImageUpload 
                   currentImageUrl={profile?.profile_image_url}
@@ -196,19 +192,8 @@ export default function UserSettingsPage() {
                   size="lg"
                 />
               </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile?.email || ''}
-                    onChange={handleInputChange}
-                    placeholder="Enter your email"
-                  />
-                </div>
 
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input
@@ -216,8 +201,23 @@ export default function UserSettingsPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Enter your full name"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="your@email.com"
+                    disabled={true}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A confirmation link will be sent to the new email.
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -229,12 +229,16 @@ export default function UserSettingsPage() {
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
+                    disabled={true}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    You will receive a 6-digit OTP to verify the new number.
+                  </p>
                 </div>
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={updating}>
-                    {updating ? 'Saving...' : 'Save Changes'}
+                    {updating ? 'Processing...' : 'Save Changes'}
                   </Button>
                 </div>
               </form>
@@ -243,6 +247,15 @@ export default function UserSettingsPage() {
         </div>
       </main>
       <Footer />
+
+      {/* Phone Verification Modal Only
+      {showPhoneVerification && (
+        <VerificationModal
+          phone={showPhoneVerification}
+          onSuccess={handlePhoneVerificationSuccess}
+          onClose={() => setShowPhoneVerification(null)}
+        />
+      )} */}
     </>
   )
 }

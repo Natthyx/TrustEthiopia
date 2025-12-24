@@ -121,6 +121,7 @@ export type Database = {
           google_map_embed: string | null
           phone: string | null
           address: string | null
+          created_by_admin: boolean | null
         }
         Insert: {
           id?: string
@@ -136,6 +137,7 @@ export type Database = {
           google_map_embed?: string | null
           phone?: string | null
           address?: string | null
+          created_by_admin?: boolean | null
         }
         Update: {
           id?: string
@@ -151,6 +153,7 @@ export type Database = {
           google_map_embed?: string | null
           phone?: string | null
           address?: string | null
+          created_by_admin?: boolean | null
         }
         Relationships: [
           {
@@ -362,9 +365,11 @@ export type Database = {
           thumbnail_image: string | null
           read_count: number | null
           published: boolean | null
-          status: string | null  // ← ADD THIS LINE
+          status: string | null
           created_at: string | null
           updated_at: string | null
+          is_featured: boolean | null
+          is_trending: boolean | null
         }
         Insert: {
           id?: string
@@ -374,9 +379,11 @@ export type Database = {
           thumbnail_image?: string | null
           read_count?: number | null
           published?: boolean | null
-          status?: string | null  // ← ADD THIS LINE
+          status?: string | null
           created_at?: string | null
           updated_at?: string | null
+          is_featured?: boolean | null
+          is_trending?: boolean | null
         }
         Update: {
           id?: string
@@ -386,9 +393,11 @@ export type Database = {
           thumbnail_image?: string | null
           read_count?: number | null
           published?: boolean | null
-          status?: string | null  // ← ADD THIS LINE
+          status?: string | null
           created_at?: string | null
           updated_at?: string | null
+          is_featured?: boolean | null
+          is_trending?: boolean | null
         }
         Relationships: [
           {

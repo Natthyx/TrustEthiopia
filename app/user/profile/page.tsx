@@ -157,51 +157,6 @@ export default function UserProfilePage() {
     })
   }
 
-  const handleUpdatePhone = async () => {
-    if (!profile) return
-
-    try {
-      const supabase = createClient()
-      
-      // Validate phone number format (E.164)
-      if (newPhone && !/^\+[1-9][0-9]{1,14}$/.test(newPhone)) {
-        toast.error('Invalid phone number format. Please use E.164 format (e.g., +1234567890).')
-        return
-      }
-      
-      // Update phone in auth user
-      const { error: authError } = await supabase.auth.updateUser({
-        phone: newPhone || undefined
-      })
-      
-      if (authError) {
-        console.error('Auth phone update error:', authError)
-        toast.error('Failed to update phone number in authentication system.')
-        return
-      }
-      
-      // Update phone in profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ phone: newPhone || null })
-        .eq('id', profile.id)
-      
-      if (profileError) {
-        console.error('Profile phone update error:', profileError)
-        toast.error('Failed to update phone number in profile.')
-        return
-      }
-      
-      // Update local state
-      setProfile({ ...profile, phone: newPhone || null })
-      setEditingPhone(false)
-      toast.success('Phone number updated successfully!')
-    } catch (error) {
-      console.error('Phone update error:', error)
-      toast.error('An unexpected error occurred while updating phone number.')
-    }
-  }
-
   if (loading) {
     return (
       <>
@@ -267,49 +222,11 @@ export default function UserProfilePage() {
                     {/* Phone Number Section */}
                     <div className="flex items-center text-sm">
                       <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
-                      {editingPhone ? (
-                        <div className="flex-1 flex gap-2">
-                          <Input
-                            type="tel"
-                            placeholder="+1234567890"
-                            value={newPhone}
-                            onChange={(e) => setNewPhone(e.target.value)}
-                            className="text-sm h-8"
-                          />
-                          <Button 
-                            size="sm" 
-                            onClick={handleUpdatePhone}
-                            className="h-8"
-                          >
-                            Save
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              setEditingPhone(false)
-                              setNewPhone(profile?.phone || '')
-                            }}
-                            className="h-8"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      ) : (
                         <div className="flex items-center justify-between w-full">
                           <span>
                             {profile?.phone || 'No phone number'}
                           </span>
-                          <Button 
-                            variant="link" 
-                            size="sm" 
-                            className="h-auto p-0 text-xs"
-                            onClick={() => setEditingPhone(true)}
-                          >
-                            {profile?.phone ? 'Edit' : 'Add'}
-                          </Button>
                         </div>
-                      )}
                     </div>
                     
                     <div className="flex items-center text-sm">

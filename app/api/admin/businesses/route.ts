@@ -47,7 +47,8 @@ export async function GET(req: Request) {
       business_name,
       business_owner_id,
       is_banned,
-      created_at
+      created_at,
+      created_by_admin
     `)
     .order('created_at', { ascending: false });
 
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
       // Get owner profile
       const { data: ownerProfile, error: ownerError } = await supabaseAdmin
         .from('profiles')
-        .select('name, email')
+        .select('name, email, role')
         .eq('id', business.business_owner_id)
         .single();
 
@@ -86,9 +87,11 @@ export async function GET(req: Request) {
         category_name: categoryName,
         owner_name: ownerProfile?.name || "Unknown",
         owner_email: ownerProfile?.email || "Unknown",
+        owner_role: ownerProfile?.role || "user",
         is_banned: business.is_banned,
         created_at: business.created_at,
-        document_count: documentCount || 0
+        document_count: documentCount || 0,
+        created_by_admin: business.created_by_admin || false
       };
     })
   );

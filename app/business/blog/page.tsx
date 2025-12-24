@@ -28,6 +28,8 @@ interface BlogPost {
   status: 'pending' | 'drafted' | 'approved' | 'withdrawn' | 'published' | 'unpublished' | null
   created_at: string | null
   updated_at: string | null
+  is_featured: boolean | null
+  is_trending: boolean | null
 }
 export default function BusinessBlogPage() {
   const [business, setBusiness] = useState<BusinessData | null>(null)

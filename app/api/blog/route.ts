@@ -15,6 +15,8 @@ export async function GET() {
         status, 
         created_at, 
         updated_at,
+        is_featured,
+        is_trending,
         businesses(business_name)
       `)
       .eq('published', true)
@@ -34,7 +36,9 @@ export async function GET() {
       author: post.businesses?.business_name || 'ReviewTrust Team',
       date: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date',
       image: post.thumbnail_image || '/placeholder.svg?key=blog_default',
-      readTime: Math.max(1, Math.floor((post.content?.length || 0) / 200)) + ' min read'
+      readTime: Math.max(1, Math.floor((post.content?.length || 0) / 200)) + ' min read',
+      is_featured: post.is_featured,
+      is_trending: post.is_trending,
     }));
 
     return NextResponse.json(blogPosts);

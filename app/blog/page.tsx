@@ -19,6 +19,8 @@ interface BlogPost {
   date: string
   image: string
   readTime: string
+  is_featured: boolean | null
+  is_trending: boolean | null
 }
 
 export default function BlogPage() {
@@ -26,6 +28,7 @@ export default function BlogPage() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [featuredPost, setFeaturedPost] = useState<BlogPost | null>(null)
+  const [trendingPosts, setTrendingPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
@@ -37,13 +40,14 @@ export default function BlogPage() {
         
         const data = await response.json()
         
-        // Set the first post as featured (in a real implementation, this would be determined by admin)
-        if (data.length > 0) {
-          setFeaturedPost(data[0])
-          setBlogPosts(data.slice(1)) // All posts except the first one
-        } else {
-          setBlogPosts(data)
-        }
+        // Separate featured and trending posts based on database values
+        const featured = data.find((post: BlogPost) => post.is_featured) || null;
+        const trending = data.filter((post: BlogPost) => post.is_trending);
+        const regular = data.filter((post: BlogPost) => !post.is_featured && !post.is_trending);
+        
+        setFeaturedPost(featured);
+        setTrendingPosts(trending);
+        setBlogPosts(regular); // Only regular posts in the main list
         
         setLoading(false)
       } catch (error) {
@@ -83,7 +87,7 @@ export default function BlogPage() {
         </section>
 
         {/* Search */}
-        <section className="py-8 px-4 border-b border-border">
+        {/* <section className="py-8 px-4 border-b border-border">
           <div className="container-app">
             <div className="max-w-md relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -95,7 +99,7 @@ export default function BlogPage() {
               />
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Featured Post */}
         <section className="py-12 px-4">
@@ -134,11 +138,52 @@ export default function BlogPage() {
             )}
           </div>
         </section>
+        
+        {/* Trending Posts */}
+        {trendingPosts.length > 0 && (
+          <section className="py-8 px-4 bg-muted/30">
+            <div className="container-app">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Trending Now</h2>
+                <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">
+                  Trending
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trendingPosts.map((post) => (
+                  <Link key={post.id} href={`/blog/${post.id}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative h-48 bg-muted overflow-hidden">
+                        <Image
+                          src={post.image || "/placeholder.svg"}
+                          alt={post.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold line-clamp-2 mb-2">{post.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <User className="w-3 h-3" />
+                            {post.author}
+                          </div>
+                          <span>{post.readTime}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Blog Grid */}
         <section className="py-12 px-4">
           <div className="container-app">
-            <h2 className="text-2xl font-bold mb-8">Latest Articles</h2>
+            <h2 className="text-2xl font-bold mb-8">{trendingPosts.length > 0 ? 'More Articles' : 'Latest Articles'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.id}`}>

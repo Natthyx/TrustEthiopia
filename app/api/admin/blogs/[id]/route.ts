@@ -54,6 +54,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       status, 
       created_at, 
       updated_at,
+      is_featured,
+      is_trending,
       business:businesses(business_name, id)
     `)
     .eq("id", id)
@@ -75,7 +77,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // 3. Get the update data from request body
   const body = await req.json();
 
-  // 4. Update the blog post using service_role
+  // 4. If setting a blog as featured, first unfeature any existing featured blog
+  if (body.is_featured === true) {
+    await supabaseAdmin
+      .from("blogs")
+      .update({ is_featured: false })
+      .eq("is_featured", true);
+  }
+
+  // 5. Update the blog post using service_role
   const { data, error } = await supabaseAdmin
     .from("blogs")
     .update(body)

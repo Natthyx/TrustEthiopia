@@ -24,6 +24,8 @@ interface BlogPost {
   read_count: number | null
   created_at: string | null
   updated_at: string | null
+  is_featured: boolean | null
+  is_trending: boolean | null
   business: {
     business_name: string
     id: string
@@ -35,8 +37,10 @@ export default function AdminBlogManagementPage() {
   const [filteredBlogPosts, setFilteredBlogPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [featuredPosts, setFeaturedPosts] = useState<string[]>([])
-  const [trendingPosts, setTrendingPosts] = useState<string[]>([])
+  // We no longer need client-side state for featured/trending as it's stored in the database
+  // State for featured/trending is now stored in the database, so we use the values from blog posts
+  const featuredPosts = blogPosts.filter(post => post.is_featured).map(post => post.id)
+  const trendingPosts = blogPosts.filter(post => post.is_trending).map(post => post.id)
   const [processing, setProcessing] = useState<string | null>(null)
   
   const router = useRouter()
@@ -119,14 +123,87 @@ export default function AdminBlogManagementPage() {
   const toggleFeatured = async (postId: string) => {
     setProcessing(postId)
     try {
-      // Toggle featured status by updating metadata or adding to featured list
-      if (featuredPosts.includes(postId)) {
-        setFeaturedPosts(prev => prev.filter(id => id !== postId))
+      // Toggle featured status by updating the database
+      const isCurrentlyFeatured = blogPosts.find(post => post.id === postId)?.is_featured;
+                  
+      if (isCurrentlyFeatured) {
+        // Remove from featured
+        const response = await fetch(`/api/admin/blogs/${postId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_featured: false })
+        })
+              
+        if (!response.ok) {
+          throw new Error('Failed to update featured status')
+        }
+              
+        // Update local blog posts state
+        setBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_featured: false } : post
+        ))
+              
+        setFilteredBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_featured: false } : post
+        ))
       } else {
-        setFeaturedPosts(prev => [...prev, postId])
+        // First, unfeature any currently featured post
+        const currentlyFeatured = blogPosts.find(post => post.is_featured);
+        if (currentlyFeatured) {
+          // Unfeature the current featured post
+          await fetch(`/api/admin/blogs/${currentlyFeatured.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_featured: false })
+          });
+        }
+              
+        // Then feature the new post
+        const response = await fetch(`/api/admin/blogs/${postId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_featured: true })
+        })
+              
+        if (!response.ok) {
+          throw new Error('Failed to update featured status')
+        }
+              
+        // Update local blog posts state
+        setBlogPosts(prev => {
+          return prev.map(post => {
+            if (post.id === currentlyFeatured?.id) {
+              return { ...post, is_featured: false };
+            } else if (post.id === postId) {
+              return { ...post, is_featured: true };
+            }
+            return post;
+          });
+        });
+              
+        setFilteredBlogPosts(prev => {
+          return prev.map(post => {
+            if (post.id === currentlyFeatured?.id) {
+              return { ...post, is_featured: false };
+            } else if (post.id === postId) {
+              return { ...post, is_featured: true };
+            }
+            return post;
+          });
+        });
       }
-      
-      toast.success(`Blog post ${featuredPosts.includes(postId) ? 'removed from' : 'added to'} featured posts`)
+            
+      const wasFeatured = blogPosts.find(post => post.id === postId)?.is_featured;
+      toast.success(`Blog post ${wasFeatured ? 'removed from' : 'added to'} featured posts`)
     } catch (error) {
       console.error('Error toggling featured status:', error)
       toast.error('Failed to update featured status')
@@ -138,14 +215,59 @@ export default function AdminBlogManagementPage() {
   const toggleTrending = async (postId: string) => {
     setProcessing(postId)
     try {
-      // Toggle trending status by updating metadata or adding to trending list
-      if (trendingPosts.includes(postId)) {
-        setTrendingPosts(prev => prev.filter(id => id !== postId))
+      // Toggle trending status by updating the database
+      const isCurrentlyTrending = blogPosts.find(post => post.id === postId)?.is_trending;
+            
+      if (isCurrentlyTrending) {
+        // Remove from trending
+        const response = await fetch(`/api/admin/blogs/${postId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_trending: false })
+        })
+              
+        if (!response.ok) {
+          throw new Error('Failed to update trending status')
+        }
+              
+        // Update local blog posts state
+        setBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_trending: false } : post
+        ))
+              
+        setFilteredBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_trending: false } : post
+        ))
       } else {
-        setTrendingPosts(prev => [...prev, postId])
+        // Add to trending
+        const response = await fetch(`/api/admin/blogs/${postId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_trending: true })
+        })
+              
+        if (!response.ok) {
+          throw new Error('Failed to update trending status')
+        }
+              
+        // Update local blog posts state
+        setBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_trending: true } : post
+        ))
+              
+        setFilteredBlogPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, is_trending: true } : post
+        ))
       }
-      
-      toast.success(`Blog post ${trendingPosts.includes(postId) ? 'removed from' : 'added to'} trending posts`)
+            
+      const wasTrending = blogPosts.find(post => post.id === postId)?.is_trending;
+      toast.success(`Blog post ${wasTrending ? 'removed from' : 'added to'} trending posts`)
     } catch (error) {
       console.error('Error toggling trending status:', error)
       toast.error('Failed to update trending status')
@@ -262,37 +384,37 @@ export default function AdminBlogManagementPage() {
                       <TableCell>
                         <Button
                           size="sm"
-                          variant={featuredPosts.includes(post.id) ? "default" : "outline"}
+                          variant={post.is_featured ? "default" : "outline"}
                           className="gap-2"
                           onClick={() => toggleFeatured(post.id)}
                           disabled={processing === post.id}
                         >
                           {processing === post.id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          ) : featuredPosts.includes(post.id) ? (
+                          ) : post.is_featured ? (
                             <ChevronDown className="w-4 h-4" />
                           ) : (
                             <ChevronUp className="w-4 h-4" />
                           )}
-                          {featuredPosts.includes(post.id) ? "Featured" : "Feature"}
+                          {post.is_featured ? "Featured" : "Feature"}
                         </Button>
                       </TableCell>
                       <TableCell>
                         <Button
                           size="sm"
-                          variant={trendingPosts.includes(post.id) ? "default" : "outline"}
+                          variant={post.is_trending ? "default" : "outline"}
                           className="gap-2"
                           onClick={() => toggleTrending(post.id)}
                           disabled={processing === post.id}
                         >
                           {processing === post.id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          ) : trendingPosts.includes(post.id) ? (
+                          ) : post.is_trending ? (
                             <ChevronDown className="w-4 h-4" />
                           ) : (
                             <ChevronUp className="w-4 h-4" />
                           )}
-                          {trendingPosts.includes(post.id) ? "Trending" : "Trend"}
+                          {post.is_trending ? "Trending" : "Trend"}
                         </Button>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">

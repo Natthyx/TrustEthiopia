@@ -38,7 +38,6 @@ const businessItems: SidebarItem[] = [
   { label: "Reviews", href: "/business/reviews", icon: <MessageSquare className="w-4 h-4" /> },
   { label: "Documents", href: "/business/documents", icon: <FileText className="w-4 h-4" /> },
   { label: "Blog Posts", href: "/business/blog", icon: <FileText className="w-4 h-4" /> },
-  { label: "Settings", href: "/business/settings", icon: <Settings className="w-4 h-4" /> },
 ]
 
 const adminItems: SidebarItem[] = [
@@ -50,7 +49,6 @@ const adminItems: SidebarItem[] = [
   { label: "Documents", href: "/admin/documents", icon: <FileText className="w-4 h-4" /> },
   { label: "Reviews", href: "/admin/reviews", icon: <MessageSquare className="w-4 h-4" /> },
   { label: "Blog Posts", href: "/admin/blog", icon: <FileText className="w-4 h-4" /> },
-  { label: "Settings", href: "/admin/settings", icon: <Settings className="w-4 h-4" /> },
 ]
 
 export function Sidebar({ role = "user" }: { role?: "user" | "business" | "admin" }) {

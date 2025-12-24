@@ -172,7 +172,7 @@ export default function LoginPage() {
             )}
 
             <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              {/* <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="email" className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email
@@ -181,7 +181,7 @@ export default function LoginPage() {
                   <Phone className="w-4 h-4" />
                   Phone
                 </TabsTrigger>
-              </TabsList>
+              </TabsList> */}
 
               <TabsContent value="email">
                 <form className="space-y-4" onSubmit={handleEmailLogin}>
@@ -223,10 +223,10 @@ export default function LoginPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Checkbox id="remember" />
+                      {/* <Checkbox id="remember" />
                       <Label htmlFor="remember" className="text-sm cursor-pointer">
                         Remember me
-                      </Label>
+                      </Label> */}
                     </div>
                     <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
                       Forgot password?
@@ -239,7 +239,7 @@ export default function LoginPage() {
                 </form>
               </TabsContent>
 
-              <TabsContent value="phone">
+              {/* <TabsContent value="phone">
                 {!showOtpInput ? (
                   <div className="space-y-4">
                     <div>
@@ -323,7 +323,7 @@ export default function LoginPage() {
                     </div>
                   </form>
                 )}
-              </TabsContent>
+              </TabsContent> */}
             </Tabs>
 
             <div className="relative my-6">

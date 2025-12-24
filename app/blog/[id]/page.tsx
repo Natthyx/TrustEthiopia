@@ -16,6 +16,8 @@ interface BlogPost {
   date: string
   image: string
   readTime: string
+  is_featured: boolean | null
+  is_trending: boolean | null
 }
 
 async function getBlogPost(id: string): Promise<BlogPost | null> {
@@ -119,7 +121,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Related Articles */}
-          <div>
+          {/* <div>
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -143,7 +145,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
                 </Card>
               ))}
             </div>
-          </div>
+          </div> */}
         </article>
       </main>
       <Footer />

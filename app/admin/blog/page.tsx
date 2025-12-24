@@ -23,6 +23,8 @@ interface BlogPost {
   status: 'pending' | 'drafted' | 'approved' | 'withdrawn' | 'published' | 'unpublished' | null
   created_at: string | null
   updated_at: string | null
+  is_featured: boolean | null
+  is_trending: boolean | null
   business: {
     business_name: string
     id: string

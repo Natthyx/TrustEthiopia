@@ -51,6 +51,8 @@ export async function GET(req: Request) {
       status, 
       created_at, 
       updated_at,
+      is_featured,
+      is_trending,
       business:businesses(business_name, id)
     `)
     .order('created_at', { ascending: false });
