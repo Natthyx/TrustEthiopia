@@ -27,7 +27,7 @@ import {
   Wallet, 
   PawPrint,
   Stethoscope
-} from 'lucide-react'
+} from "lucide-react"
 
 interface Subcategory {
   id: string
@@ -52,8 +52,7 @@ export default function CategoriesPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
 
-  // Check if user is banned (for public pages, we don't redirect immediately)
-  useBannedUserCheck('public', false)
+  useBannedUserCheck("public", false)
 
   useEffect(() => {
     fetchCategories()
@@ -61,22 +60,21 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories')
+      const response = await fetch("/api/categories")
       const data = await response.json()
-      
+
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch categories')
+        throw new Error(data.error || "Failed to fetch categories")
       }
 
       setCategories(data)
       setLoading(false)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error("Error fetching categories:", error)
       setLoading(false)
     }
   }
 
-  // Fetch search suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery.trim().length < 2) {
@@ -87,10 +85,11 @@ export default function CategoriesPage() {
 
       setIsSearching(true)
       try {
-        // Call the search API endpoint
-        const response = await fetch(`/api/explore?search=${encodeURIComponent(searchQuery)}&limit=5`)
+        const response = await fetch(
+          `/api/explore?search=${encodeURIComponent(searchQuery)}&limit=5`
+        )
         const data = await response.json()
-        
+
         if (response.ok) {
           setSuggestions(data.businesses || [])
           setShowSuggestions(true)
@@ -98,31 +97,32 @@ export default function CategoriesPage() {
           setSuggestions([])
         }
       } catch (error) {
-        console.error('Error fetching suggestions:', error)
+        console.error("Error fetching suggestions:", error)
         setSuggestions([])
       } finally {
         setIsSearching(false)
       }
     }
 
-    // Debounce the search to avoid too many API calls
-    const debounceTimer = setTimeout(() => {
-      fetchSuggestions()
-    }, 300)
-
+    const debounceTimer = setTimeout(fetchSuggestions, 300)
     return () => clearTimeout(debounceTimer)
   }, [searchQuery])
 
-  const filteredCategories = categories.map((category) => ({
-    ...category,
-    subcategories: category.subcategories.filter(
-      (sub) =>
-        sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        category.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    ),
-  })).filter((cat) => cat.subcategories.length > 0 || cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredCategories = categories
+    .map((category) => ({
+      ...category,
+      subcategories: category.subcategories.filter(
+        (sub) =>
+          sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          category.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter(
+      (cat) =>
+        cat.subcategories.length > 0 ||
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
-  // Map category icon values to Lucide React components
   const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
     "shirt": Shirt,
     "hotel": Hotel,
@@ -160,7 +160,6 @@ export default function CategoriesPage() {
   }
 
   const handleBlur = () => {
-    // Delay hiding suggestions to allow clicks on suggestions
     setTimeout(() => setShowSuggestions(false), 200)
   }
 
@@ -174,31 +173,7 @@ export default function CategoriesPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-background">
-          <div className="bg-slate-50 dark:bg-slate-900/50 py-12">
-            <div className="container-app">
-              <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">What are you looking for?</h1>
-              <div className="max-w-2xl mx-auto">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-12 text-base border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="container-app py-16">
-            <h2 className="text-2xl font-bold mb-8">Explore companies by category</h2>
-            <div className="text-center py-8">
-              <p>Loading categories...</p>
-            </div>
-          </div>
-        </main>
+        <main className="min-h-screen bg-background" />
       </>
     )
   }
@@ -206,11 +181,15 @@ export default function CategoriesPage() {
   return (
     <>
       <Navbar />
+
       <main className="min-h-screen bg-background">
-        {/* Hero Section */}
+        {/* HERO */}
         <div className="bg-slate-50 dark:bg-slate-900/50 py-12">
           <div className="container-app">
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">What are you looking for?</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+              What are you looking for?
+            </h1>
+
             <div className="max-w-2xl mx-auto relative">
               <form onSubmit={handleSearchSubmit}>
                 <div className="relative">
@@ -221,98 +200,61 @@ export default function CategoriesPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
-                    className="pl-12 h-12 text-base border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pr-12"
+                    className="pl-12 h-12"
                   />
-                  {isSearching && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
                 </div>
               </form>
-
-              {/* Suggestions dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg">
-                  {suggestions.map((business) => (
-                    <div
-                      key={business.id}
-                      className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center gap-3"
-                      onClick={() => handleSuggestionClick(business)}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        {business.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{business.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {business.location || business.address ? `${business.location || business.address}` : business.category}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {showSuggestions && suggestions.length === 0 && searchQuery.trim().length >= 2 && !isSearching && (
-                <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg">
-                  <div className="px-4 py-3 text-slate-500 dark:text-slate-400">
-                    No results found
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Categories Section */}
+        {/* CATEGORIES – MASONRY */}
         <div className="container-app py-16">
-          <h2 className="text-2xl font-bold mb-8">Explore companies by category</h2>
+          <h2 className="text-2xl font-bold mb-8">
+            Explore companies by category
+          </h2>
 
-          {filteredCategories.length === 0 && !showSuggestions ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No categories found matching your search.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredCategories.map((category) => (
-                <div
-                  key={category.id}
-                  className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+          <div className="columns-1 md:columns-2 lg:columns-4 gap-6">
+            {filteredCategories.map((category) => (
+              <div
+                key={category.id}
+                className="break-inside-avoid mb-6 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                {/* Header */}
+                <Link
+                  href={`/explore?category=${category.id}`}
+                  className={`${category.bg_color || "bg-gray-100"} block px-6 py-8 text-center`}
                 >
-                  {/* Category Header */}
-                  <Link 
-                    href={`/explore?category=${category.id}`}
-                    className={`${category.bg_color || "bg-gray-100"} dark:bg-slate-800 px-6 py-8 text-center block hover:opacity-90 transition-opacity`}
-                  >
-                    <div className="text-4xl mb-2 flex justify-center">
-                      {(() => {
-                        const IconComponent = iconComponents[category.icon || ""] || Folder;
-                        return <IconComponent className="w-8 h-8" />;
-                      })()}
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">{category.name}</h3>
-                  </Link>
-
-                  {/* Subcategories List */}
-                  <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {category.subcategories.map((subcategory) => (
-                      <Link
-                        key={subcategory.id}
-                        href={`/explore?category=${category.id}&subcategory=${encodeURIComponent(subcategory.name)}`}
-                        className="block px-6 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                      >
-                        {subcategory.name}
-                      </Link>
-                    ))}
+                  <div className="flex justify-center mb-2">
+                    {(() => {
+                      const Icon =
+                        iconComponents[category.icon || ""] || Folder
+                      return <Icon className="w-8 h-8" />
+                    })()}
                   </div>
+                  <h3 className="text-lg font-semibold">
+                    {category.name}
+                  </h3>
+                </Link>
 
+                {/* Subcategories */}
+                <div className="divide-y">
+                  {category.subcategories.map((subcategory) => (
+                    <Link
+                      key={subcategory.id}
+                      href={`/explore?category=${category.id}&subcategory=${encodeURIComponent(subcategory.name)}`}
+                      className="block px-6 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    >
+                      {subcategory.name}
+                    </Link>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </main>
+
       <Footer />
     </>
   )
