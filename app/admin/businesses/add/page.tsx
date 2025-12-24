@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BusinessHoursInput } from "@/components/business-hours-input";
 import { Plus, X, ChevronDown, ChevronRight, ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/utils/image-compressor";
 
 interface Category {
   id: string;
@@ -265,9 +266,13 @@ export default function AddBusinessPage() {
     setError(null);
 
     try {
+      // Compress the image before uploading
+      const compressedFile = await compressImage(file, 500); // Limit to 500KB
+      const compressedFileWithCorrectType = new File([compressedFile], file.name, { type: 'image/jpeg' });
+
       // Create FormData
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFileWithCorrectType);
 
       // Upload file using admin business image API route
       formData.append('business_id', businessId);

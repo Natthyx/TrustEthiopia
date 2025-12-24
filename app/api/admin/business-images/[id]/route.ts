@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function DELETE(
   request: NextRequest,
@@ -28,8 +29,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get the image to find its business_id and image_url
-    const { data: image, error: imageError } = await supabase
+    // Get the image to find its business_id
+    const { data: image, error: imageError } = await supabaseAdmin
       .from('business_images')
       .select('id, business_id, image_url')
       .eq('id', imageId)
@@ -58,7 +59,7 @@ export async function DELETE(
     const filePath = image.image_url.split('/').slice(-2).join('/')
     
     // Delete from storage
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await supabaseAdmin.storage
       .from('business_images')
       .remove([filePath])
     
@@ -68,7 +69,7 @@ export async function DELETE(
     }
 
     // Delete from database
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseAdmin
       .from('business_images')
       .delete()
       .eq('id', imageId)
@@ -112,7 +113,7 @@ export async function PATCH(
     }
 
     // Get the image to find its business_id
-    const { data: image, error: imageError } = await supabase
+    const { data: image, error: imageError } = await supabaseAdmin
       .from('business_images')
       .select('id, business_id, image_url')
       .eq('id', imageId)
@@ -141,7 +142,7 @@ export async function PATCH(
 
     // If setting as primary, update all other images for this business to not be primary
     if (is_primary) {
-      const { error: resetError } = await supabase
+      const { error: resetError } = await supabaseAdmin
         .from('business_images')
         .update({ is_primary: false })
         .eq('business_id', image.business_id)
@@ -154,7 +155,7 @@ export async function PATCH(
     }
 
     // Update the image record
-    const { data: updatedImage, error: updateError } = await supabase
+    const { data: updatedImage, error: updateError } = await supabaseAdmin
       .from('business_images')
       .update({ is_primary })
       .eq('id', imageId)

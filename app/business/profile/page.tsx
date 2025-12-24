@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingStars } from "@/components/rating-stars"
 import { Plus, X, ChevronDown, ChevronRight, Phone } from "lucide-react"
 import { BusinessHoursInput } from "@/components/business-hours-input"
+import { compressImage } from "@/lib/utils/image-compressor"
 
 interface BusinessData {
   id: string
@@ -436,9 +437,13 @@ export default function BusinessProfile() {
     setError(null)
 
     try {
+      // Compress the image before uploading
+      const compressedFile = await compressImage(file, 500); // Limit to 500KB
+      const compressedFileWithCorrectType = new File([compressedFile], file.name, { type: 'image/jpeg' });
+
       // Create FormData
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', compressedFileWithCorrectType)
 
       // Upload file using API route
       const response = await fetch('/api/business/images/upload', {

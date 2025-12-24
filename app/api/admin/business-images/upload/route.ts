@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,8 +59,8 @@ export async function POST(request: NextRequest) {
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `${business.id}/${fileName}`
     
-    // Upload file to Supabase storage
-    const { error: uploadError } = await supabase.storage
+    // Upload file to Supabase storage using service role to bypass RLS issues
+    const { error: uploadError } = await supabaseAdmin.storage
       .from('business_images')
       .upload(filePath, file)
     
@@ -69,20 +70,20 @@ export async function POST(request: NextRequest) {
     }
     
     // Get public URL for the uploaded image
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseAdmin.storage
       .from('business_images')
       .getPublicUrl(filePath)
     
-    // Check if this is the first image (to make it primary)
-    const { count: imageCount, error: countError } = await supabase
+    // Check if this is the first image (to make it primary) - using service role
+    const { count: imageCount, error: countError } = await supabaseAdmin
       .from('business_images')
       .select('*', { count: 'exact', head: true })
       .eq('business_id', business.id)
     
     const isPrimary = !countError && imageCount === 0
     
-    // Insert record in business_images table
-    const { data: imageData, error: insertError } = await supabase
+    // Insert record in business_images table using service role
+    const { data: imageData, error: insertError } = await supabaseAdmin
       .from('business_images')
       .insert({
         business_id: business.id,
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error('Insert error:', insertError)
       // Try to delete the uploaded file since we couldn't create the DB record
-      await supabase.storage
+      await supabaseAdmin.storage
         .from('business_images')
         .remove([filePath])
       
