@@ -212,7 +212,7 @@ export async function GET(request: Request) {
         comment,
         created_at,
         reviewee_id,
-        businesses(business_name, website),
+        businesses(id, business_name, website),
         profiles(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -228,6 +228,7 @@ export async function GET(request: Request) {
       rating: review.rating,
       comment: review.comment,
       createdAt: review.created_at,
+      businessId: review.businesses?.id || null,
       businessName: review.businesses?.business_name || "Unknown Business",
       reviewerName: review.profiles?.name || "Anonymous User",
       businessWebsite: review.businesses?.website || null
@@ -301,7 +302,11 @@ export async function GET(request: Request) {
             .select(`
               id,
               business_name,
-              website
+              website,
+              business_images(
+                image_url,
+                is_primary
+              )
             `)
             .in('id', businessIds)
             .eq('is_banned', false)
@@ -345,22 +350,30 @@ export async function GET(request: Request) {
             businessStats[review.reviewee_id].count += 1
           })
           
-          // Filter businesses with at least 1 review and calculate averages (changed from 3 to allow more businesses to be featured)
+          // Include all businesses, with or without reviews, and calculate averages
           const filteredBusinesses = businesses
             ?.map(business => {
               const stats = businessStats[business.id]
-              if (!stats) return null
+              
+              // Get primary image or first image
+              const primaryImage = business.business_images?.find((img: any) => img.is_primary) || business.business_images?.[0]
               
               return {
                 id: business.id,
                 business_name: business.business_name || '',
                 website: business.website || null,
-                rating: stats.totalRating / stats.count,
-                review_count: stats.count
+                rating: stats ? stats.totalRating / stats.count : 0,
+                review_count: stats ? stats.count : 0,
+                imageUrl: primaryImage?.image_url || undefined
               }
             })
-            .filter((item): item is NonNullable<typeof item> => item !== null)
-            ?.sort((a, b) => b.rating - a.rating || b.review_count - a.review_count)
+            ?.sort((a, b) => {
+              // Sort by rating first (higher ratings first), then by review count
+              if (b.rating !== a.rating) {
+                return b.rating - a.rating
+              }
+              return b.review_count - a.review_count
+            })
             .slice(0, 4) || [] // Limit to 4 businesses per subcategory
           
           return {

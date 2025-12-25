@@ -8,6 +8,7 @@ interface BestBusiness {
   website: string | null
   rating: number
   review_count: number
+  imageUrl?: string
 }
 
 interface BestInCategory {
@@ -46,11 +47,32 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {category.businesses.map((business, businessIndex) => (
-                <div key={`${category.categoryName}-${businessIndex}`} className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-lg font-bold text-foreground">
-                      {business.business_name.substring(0, 2).toUpperCase()}
-                    </span>
+                <div key={`${category.categoryName}-${businessIndex}`} className="bg-card rounded-lg p-6 shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = `/service/${business.id}`}>
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+                    {business.imageUrl ? (
+                      <img 
+                        src={business.imageUrl} 
+                        alt={business.business_name}
+                        className="w-full h-full object-cover rounded-lg"
+                        onError={(e) => {
+                          // Fallback to text if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null; // Prevent infinite loop
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const fallbackSpan = document.createElement('span');
+                            fallbackSpan.className = 'text-lg font-bold text-foreground';
+                            fallbackSpan.textContent = business.business_name.substring(0, 2).toUpperCase();
+                            parent.appendChild(fallbackSpan);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-foreground">
+                        {business.business_name.substring(0, 2).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-bold text-foreground mb-1">{business.business_name}</h3>
                   <div className="flex items-center gap-2">
@@ -63,15 +85,19 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
                     <span className="text-sm font-semibold text-foreground">{business.rating.toFixed(1)}</span>
                     <span className="text-sm text-muted-foreground">({business.review_count})</span>
                   </div>
+                  <Link href={`/service/${business.id}`} className="block absolute inset-0 z-0 opacity-0"></Link>
                   {business.website && (
-                    <a 
-                      href={business.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline mt-2 block truncate"
-                    >
-                      {business.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                    </a>
+                    <div className="mt-2">
+                      <span className="text-xs text-muted-foreground">Website:</span>
+                      <a 
+                        href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline ml-1 truncate block"
+                      >
+                        {business.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </a>
+                    </div>
                   )}
                 </div>
               ))}

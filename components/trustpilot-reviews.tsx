@@ -120,16 +120,28 @@ export function TrustpilotReviews({
 
                 <div className="flex items-center gap-2 pt-4 border-t border-border">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{review.businessName}</p>
-                    {review.businessWebsite && (
-                      <a 
-                        href={review.businessWebsite} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline truncate block"
+                    {review.businessId ? (
+                      <Link 
+                        href={`/service/${review.businessId}`}
+                        className="text-xs font-semibold text-primary hover:underline truncate block"
                       >
-                        {review.businessWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                      </a>
+                        {review.businessName}
+                      </Link>
+                    ) : (
+                      <p className="text-xs font-semibold text-foreground truncate">{review.businessName}</p>
+                    )}
+                    {review.businessWebsite && (
+                      <div className="mt-1">
+                        
+                        <a 
+                          href={review.businessWebsite.startsWith('http') ? review.businessWebsite : `https://${review.businessWebsite}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline ml-1 truncate block"
+                        >
+                          {review.businessWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>

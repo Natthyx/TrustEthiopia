@@ -475,7 +475,14 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                         <Globe className="w-5 h-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">Website</p>
-                          <p className="text-sm text-muted-foreground">{business.website}</p>
+                          <a 
+                            href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline"
+                          >
+                            {business.website}
+                          </a>
                         </div>
                       </div>
                     )}
