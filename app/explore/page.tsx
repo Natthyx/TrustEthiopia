@@ -108,7 +108,7 @@ export default function ExplorePage() {
       if (subcategoryParam) params.append('subcategory', subcategoryParam)
       if (sortBy) params.append('sort', sortBy)
       params.append('page', currentPage.toString())
-      params.append('limit', '12')
+      params.append('limit', '10')
       
       const response = await fetch(`/api/explore?${params.toString()}`)
       const data = await response.json()

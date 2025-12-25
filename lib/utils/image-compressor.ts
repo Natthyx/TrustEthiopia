@@ -30,6 +30,10 @@ export async function compressImage(file: File, maxSizeInKB: number = 500): Prom
       canvas.width = width;
       canvas.height = height;
       
+      // Draw white background first to handle transparency
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      
       // Draw the image on canvas
       ctx.drawImage(img, 0, 0, width, height);
       

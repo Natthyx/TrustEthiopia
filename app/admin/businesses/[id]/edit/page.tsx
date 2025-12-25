@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BusinessHoursInput } from "@/components/business-hours-input";
 import { Plus, X, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/utils/image-compressor";
 
 interface Category {
   id: string;
@@ -379,6 +380,11 @@ export default function EditBusinessPage() {
 
       setSuccess('Business information updated successfully!');
       toast.success('Business information updated successfully!');
+      
+      // Redirect back to business list after successful save
+      setTimeout(() => {
+        router.push('/admin/businesses');
+      }, 1000); // 1 second delay to allow user to see success message
     } catch (error: any) {
       setError(`Failed to save: ${error.message}`);
       toast.error(`Failed to save: ${error.message}`);
@@ -395,9 +401,14 @@ export default function EditBusinessPage() {
     setError(null);
 
     try {
+      // Compress the image before uploading
+      const compressedFile = await compressImage(file, 500); // Limit to 500KB
+      const compressedFileWithCorrectType = new File([compressedFile], file.name, { type: 'image/jpeg' });
+
       // Create FormData
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFileWithCorrectType);
+      formData.append('business_id', businessId);
 
       // Upload file using admin API route
       const response = await fetch('/api/admin/business-images/upload', {
@@ -411,37 +422,16 @@ export default function EditBusinessPage() {
         throw new Error(result.error || 'Failed to upload image');
       }
 
-      // Update the business_id for the uploaded image
-      const updateResponse = await fetch('/api/admin/business-images/update', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessId: businessId,
-          imageIds: [result.id]
-        })
-      });
+      // Add the new image to the state
+      const newImages = [result, ...images];
+      setImages(newImages);
       
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        throw new Error(errorData.error || 'Failed to update business images');
+      // Set as primary if it's the first image
+      if (images.length === 0) {
+        setPrimaryImageId(result.id);
       }
-
-      // Refresh images list
-      const { data: imagesData, error: imagesError } = await supabase
-        .from('business_images')
-        .select('*')
-        .eq('business_id', businessId)
-        .order('created_at', { ascending: false });
-
-      if (!imagesError && imagesData) {
-        setImages(imagesData);
-        if (images.length === 0) {
-          setPrimaryImageId(imagesData[0]?.id || null);
-        }
-        toast.success('Image uploaded successfully!');
-      }
+      
+      toast.success('Image uploaded successfully!');
     } catch (error: any) {
       console.error('Error uploading image:', error);
       toast.error(`Failed to upload image: ${error.message}`);
@@ -456,8 +446,8 @@ export default function EditBusinessPage() {
 
   const handleDeleteImage = async (imageId: string, imageUrl: string) => {
     try {
-      // Delete image using API route
-      const response = await fetch(`/api/business/images/${imageId}`, {
+      // Delete image using admin API route
+      const response = await fetch(`/api/admin/business-images/${imageId}`, {
         method: 'DELETE',
       });
 
@@ -489,8 +479,8 @@ export default function EditBusinessPage() {
 
   const handleSetPrimaryImage = async (imageId: string) => {
     try {
-      // Update image using API route
-      const response = await fetch(`/api/business/images/${imageId}`, {
+      // Update image using admin API route
+      const response = await fetch(`/api/admin/business-images/${imageId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
