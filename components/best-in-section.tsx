@@ -26,7 +26,7 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
   }
 
   return (
-    <section className="bg-background">
+    <section className="bg-background mb-10">
       <div className="container-app mx-auto px-4 space-y-16">
         {categories.map((category, index) => (
           <div key={index}>
@@ -47,8 +47,11 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {category.businesses.map((business, businessIndex) => (
-                <div key={`${category.categoryName}-${businessIndex}`} className="bg-card rounded-lg p-6 shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = `/service/${business.id}`}>
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+                <div key={`${category.categoryName}-${businessIndex}`} className="relative bg-card rounded-lg p-6 shadow-sm border border-border hover:shadow-md transition-shadow">
+                  <Link href={`/service/${business.id}`} className="absolute inset-0 z-10">
+                    <span className="sr-only">View {business.business_name}</span>
+                  </Link>
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4 overflow-hidden relative z-20">
                     {business.imageUrl ? (
                       <img 
                         src={business.imageUrl} 
@@ -74,8 +77,8 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
                       </span>
                     )}
                   </div>
-                  <h3 className="font-bold text-foreground mb-1">{business.business_name}</h3>
-                  <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-foreground mb-1 relative z-20">{business.business_name}</h3>
+                  <div className="flex items-center gap-2 relative z-20">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star 
                         key={i} 
@@ -85,7 +88,6 @@ export function BestInSection({ categories }: { categories: BestInCategory[] }) 
                     <span className="text-sm font-semibold text-foreground">{business.rating.toFixed(1)}</span>
                     <span className="text-sm text-muted-foreground">({business.review_count})</span>
                   </div>
-                  <Link href={`/service/${business.id}`} className="block absolute inset-0 z-0 opacity-0"></Link>
                   {business.website && (
                     <div className="mt-2">
                       <span className="text-xs text-muted-foreground">Website:</span>

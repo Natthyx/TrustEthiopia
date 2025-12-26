@@ -13,6 +13,7 @@ import { Navbar } from "@/components/navbar"
 import { toast } from "sonner"
 import { Review } from "@/types/review"
 import { Footer } from "./footer"
+import RatingBars from "./rating-bars"
 
 interface Business {
   id: string
@@ -48,6 +49,52 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
   const [reviewsPage, setReviewsPage] = useState(1)
   const [hasMoreReviews, setHasMoreReviews] = useState(true)
   const reviewsPerPage = 5
+
+  // Calculate rating distribution and average
+  const calculateRatingDistribution = () => {
+    if (!localReviews || localReviews.length === 0) {
+      // Default distribution if no reviews
+      return {
+        distribution: [
+          { stars: "5-star", percentage: 0, fill: 0 },
+          { stars: "4-star", percentage: 0, fill: 0 },
+          { stars: "3-star", percentage: 0, fill: 0 },
+          { stars: "2-star", percentage: 0, fill: 0 },
+          { stars: "1-star", percentage: 0, fill: 0 },
+        ],
+        average: 0,
+        total: 0
+      };
+    }
+
+    const totalReviews = localReviews.length;
+    const ratingCounts = [0, 0, 0, 0, 0]; // For ratings 1-5
+    let totalRating = 0;
+
+    localReviews.forEach(review => {
+      if (review.rating >= 1 && review.rating <= 5) {
+        ratingCounts[review.rating - 1]++;
+        totalRating += review.rating;
+      }
+    });
+
+    const distribution = ratingCounts.map((count, index) => {
+      const percentage = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+      return {
+        stars: `${index + 1}-star`,
+        percentage,
+        fill: percentage
+      };
+    }).reverse(); // Reverse to show 5-star first
+    
+    const average = totalReviews > 0 ? totalRating / totalReviews : 0;
+    
+    return {
+      distribution,
+      average,
+      total: totalReviews
+    };
+  }
 
   // Track view with real IP using server action
   useEffect(() => {
@@ -384,46 +431,6 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
     <>
       <Navbar />
       <main className="min-h-screen">
-        {/* Hero & Images */}
-        <section className="bg-muted">
-          <div className="container-app py-8">
-            {business.images && business.images.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                {/* Primary image or first image */}
-                <div className="md:col-span-2 relative h-96 rounded-lg overflow-hidden">
-                  <img 
-                    src={business.images.find(img => img.is_primary)?.image_url || business.images[0].image_url} 
-                    alt={business.name} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Other images - only show if they exist */}
-                {business.images.length > 1 && (
-                  <div className="grid grid-cols-2 gap-4">
-                    {business.images
-                      .filter(img => !img.is_primary) // Exclude primary image
-                      .slice(0, 3) // Limit to 3 additional images
-                      .map((image, index) => (
-                        <div key={image.id} className="relative h-[180px] rounded-lg overflow-hidden">
-                          <img
-                            src={image.image_url}
-                            alt={`${business.name} Gallery ${index + 1}`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                          />
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              // Fallback when no images at all - show a simple placeholder
-              <div className="flex items-center justify-center h-96 bg-muted rounded-lg">
-                <p className="text-muted-foreground">No images available</p>
-              </div>
-            )}
-          </div>
-        </section>
-
         {/* Details & Reviews */}
         <section className="py-12">
           <div className="container-app">
@@ -433,79 +440,51 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                 {/* Header */}
                 <div>
                   <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <h1 className="text-3xl font-bold">{business.name}</h1>
-                      <div className="flex items-center gap-4 mt-3">
-                        <RatingStars rating={business.rating} totalReviews={business.reviewCount} />
-                        {business.categories.map((category) => (
-                          <Badge key={category.id} variant="secondary">{category.name}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground mt-4">
-                    {business.description || `${business.name} is dedicated to providing quality service to our customers.`}
-                  </p>
-                </div>
-
-                {/* Contact Info */}
-                <Card className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {business.address && (
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Address</p>
-                          <p className="text-sm text-muted-foreground">{business.address}</p>
+                    <div className="flex items-start gap-4">
+                      {business.images && business.images.length > 0 && (
+                        <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                          <img 
+                            src={business.images.find(img => img.is_primary)?.image_url || business.images[0].image_url} 
+                            alt={business.name} 
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                      </div>
-                    )}
-                    {business.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Phone</p>
-                          <p className="text-sm text-muted-foreground">{business.phone}</p>
-                        </div>
-                      </div>
-                    )}
-                    {business.website && (
-                      <div className="flex items-center gap-3">
-                        <Globe className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Website</p>
-                          <a 
-                            href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {business.website}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-muted-foreground" />
+                      )}
                       <div>
-                        <p className="font-medium">Hours</p>
-                        <p className="text-sm text-muted-foreground">
-                          {businessHours.find(h => h.day === 'Monday')?.hours || 'Not specified'}
-                        </p>
+                        <h1 className="text-3xl font-bold">{business.name}</h1>
+                        <div className="flex-column items-center gap-4 mt-3">
+                          {(() => {
+                            const ratingData = calculateRatingDistribution();
+                            return (
+                              <RatingStars rating={ratingData.average} totalReviews={ratingData.total} />
+                            );
+                          })()}
+                          {business.categories.map((category) => (
+                            <Badge key={category.id} variant="secondary">{category.name}</Badge>
+                          ))}
+                          <div className="flex gap-4 mt-4">
+                            {business.website && (
+                              <a 
+                                href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                              >
+                                <Globe className="w-4 h-4" />
+                                Visit Website
+                              </a>
+                            )}
+                      </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </Card>
+                  
+                </div>
 
                 {/* Reviews Section */}
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">Customer Reviews</h2>
-                    <Button variant="outline" className="gap-2">
-                      Sort by <ChevronDown className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  
 
                   <WriteReviewInline 
                     businessName={business.name}
@@ -556,10 +535,55 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
+                {/* Contact Info */}
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {business.address && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Address</p>
+                          <p className="text-sm text-muted-foreground">{business.address}</p>
+                        </div>
+                      </div>
+                    )}
+                    {business.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Phone</p>
+                          <p className="text-sm text-muted-foreground">{business.phone}</p>
+                        </div>
+                      </div>
+                    )}
+                    {business.website && (
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Website</p>
+                          <a 
+                            href={business.website.startsWith('http') ? business.website : `https://${business.website}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline"
+                          >
+                            {business.website}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Hours</p>
+                        <p className="text-sm text-muted-foreground">
+                          {businessHours.find(h => h.day === 'Monday')?.hours || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
                 <Card className="p-6">
                   <h3 className="font-semibold mb-4">Business Hours</h3>
                   <ul className="space-y-2 text-sm">
@@ -571,7 +595,24 @@ export function ServiceClientWrapper({ business, reviews, businessHours }: Servi
                     ))}
                   </ul>
                 </Card>
+              </div>
 
+              {/* Sidebar */}
+              <div className="space-y-6 sticky top-4">
+                <Card className="p-6">
+                  <h3 className="font-semibold mb-4">Ratings</h3>
+                  {(() => {
+                    const ratingData = calculateRatingDistribution();
+                    return (
+                      <RatingBars 
+                        ratingDistribution={ratingData.distribution} 
+                        averageRating={ratingData.average} 
+                        totalReviews={ratingData.total} 
+                      />
+                    );
+                  })()}
+                </Card>
+                
                 <Card className="p-6">
                   <h3 className="font-semibold mb-4">Location</h3>
                   <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">

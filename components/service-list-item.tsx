@@ -11,6 +11,7 @@ interface ServiceListItemProps {
   reviewCount: number
   location?: string
   description?: string
+  address?:string
 }
 
 export function ServiceListItem({
@@ -22,6 +23,7 @@ export function ServiceListItem({
   reviewCount,
   location,
   description,
+  address
 }: ServiceListItemProps) {
   return (
     <Link href={`/service/${id}`} className="block">
@@ -50,16 +52,10 @@ export function ServiceListItem({
             </div>
           </div>
           
-          {description && (
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-              {description}
-            </p>
-          )}
-          
-          {location && (
+          {(location || address) && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
               <MapPin className="w-4 h-4" />
-              <span>{location}</span>
+              <span>{address ? address + ', ' : ''}{location}</span>
             </div>
           )}
         </div>

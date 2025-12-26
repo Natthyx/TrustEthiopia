@@ -138,7 +138,8 @@ export function WriteReviewInline({
 
   if (!isVisible) {
     return (
-      <div className="mb-8">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold">Customer Reviews</h2>
         <Button 
           onClick={() => setIsVisible(true)} 
           disabled={hasUserReviewed}

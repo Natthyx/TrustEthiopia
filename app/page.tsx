@@ -127,8 +127,8 @@ export default function HomePage() {
         <TrustpilotHero />
         
         {/* Categories Section */}
-        <section className="py-16 px-4 bg-background">
-          <div className="container-app mx-auto px-4">
+        <section className="py-10 px-1 bg-background">
+          <div className="container-app mx-auto">
             {loading ? (
               <div className="h-64 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -140,8 +140,8 @@ export default function HomePage() {
         </section>
         
         {/* Business Growth Promotion Section */}
-        <section className="px-4 bg-background py-12">
-          <div className="container-app mx-auto px-4">
+        <section className="py-10 mb:py-12 px-1 bg-background">
+          <div className="container-app mx-auto">
             <div className="bg-primary rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">Looking to grow your business?</h3>
@@ -156,8 +156,8 @@ export default function HomePage() {
         
         {/* Best In Section */}
         {bestInCategories.length > 0 && (
-          <section className="py-16 px-4 bg-background">
-            <div className="container-app mx-auto px-4">
+          <section className="py-10 mb:py-12 px-1 bg-background">
+            <div className="container-app mx-auto">
               {loading ? (
                 <div className="h-64 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -170,7 +170,7 @@ export default function HomePage() {
         )}
 
         {/* About Trust Ethiopia */}
-        <section className="py-16 px-4 bg-primary text-white">
+        <section className="py-10 mb:py-12 px-1 bg-primary text-white">
           <div className="container-app max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Help millions make
               the right choice</h2>
@@ -181,10 +181,10 @@ export default function HomePage() {
           </div>
         </section>
         {/* About Trust Ethiopia */}
-        <section className="py-16 px-4 text-muted-foreground">
+        <section className="py-10 mb:py-16 mt-8 px-4 text-muted-foreground">
           <div className="container-app max-w-2xl mx-auto text-center">
             <h2 className="text-2xl font-bold mb-4">Welcome to TRUST ETHIOPIA</h2>
-            <p className="mb-8 text-muted-foreground">
+            <p className="text-muted-foreground">
               Your reliable guide to honest businesses across Ethiopia. We help you find trusted
               businesses, and service providers based on real reviews and community
               feedback. Together, we're building a fairer,
@@ -193,7 +193,7 @@ export default function HomePage() {
           </div>
         </section>
         {/* Recent Reviews Section */}
-        <section className="py-16 px-4 bg-background">
+        <section className="py-10 mb:py-12 sm:py-20 px-4 bg-background">
           <div className="container-app mx-auto px-4">
             {loading ? (
               <div className="h-64 flex items-center justify-center">

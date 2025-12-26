@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Filter, Star, Grid, List } from "lucide-react"
+import { Search, Filter, Star, Grid, List, ChevronDown } from "lucide-react"
 import { useSearchParams } from 'next/navigation'
 import { Footer } from "@/components/footer"
 import Link from "next/link"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible"
 
 interface Service {
   id: string
@@ -53,6 +54,11 @@ export default function ExplorePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const searchParams = useSearchParams()
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  const [categoryOpen, setCategoryOpen] = useState(true)
+  const [sortOpen, setSortOpen] = useState(true)
+
   
   // Get parameters from URL
   const subcategoryParam = searchParams.get('subcategory')
@@ -126,7 +132,8 @@ export default function ExplorePage() {
         rating: business.rating || 0,
         reviewCount: business.reviewCount || 0,
         location: business.location || business.address || "",
-        description: business.description || ""
+        description: business.description || "",
+        address: business.address || ""
       }))
       
       setServices(transformedServices)
@@ -239,7 +246,7 @@ export default function ExplorePage() {
                 ? `Best in ${categories.find(cat => cat.id === categoryParam)?.name || 'Category'}`
                 : 'Explore Services'}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground sm:block hidden">
               {searchQueryParam 
                 ? `Found ${pagination.totalCount} businesses matching "${searchQueryParam}"`
                 : subcategoryParam 
@@ -252,7 +259,8 @@ export default function ExplorePage() {
 
           {/* Search & Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="flex-1 relative">
+            {/* Search input - hidden on mobile, visible on desktop */}
+            <div className="flex-1 relative md:flex-1 md:block hidden">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <form onSubmit={handleSearch} className="w-full">
                 <Input
@@ -263,30 +271,37 @@ export default function ExplorePage() {
                 />
               </form>
             </div>
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="rating">Highest Rated</SelectItem>
-                <SelectItem value="reviews">Most Reviewed</SelectItem>
-                <SelectItem value="recent">Recently Added</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex gap-1">
+            
+            {/* Desktop: Category and Sort filters - hidden on mobile */}
+            <div className="hidden md:flex gap-2">
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                  <SelectItem value="reviews">Most Reviewed</SelectItem>
+                  <SelectItem value="recent">Recently Added</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* View mode and filter buttons */}
+            <div className="flex justify-between gap-1">
+              <div>
               <Button 
                 variant={viewMode === "grid" ? "default" : "outline"} 
                 size="icon"
@@ -302,36 +317,103 @@ export default function ExplorePage() {
                 className="h-10 w-10"
               >
                 <List className="h-4 w-4" />
-              </Button>
-            </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="md:hidden bg-transparent">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="mt-8 space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-3">Rating</h3>
-                    <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map((r) => (
-                        <label key={r} className="flex items-center gap-3 text-sm">
-                          <input type="checkbox" className="rounded" />
-                          <span className="flex items-center gap-2">
-                            {r} <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          </span>
-                        </label>
+              </Button></div>
+              
+              {/* Mobile filter button - only visible on mobile */}
+              <div className="md:hidden">
+                <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="bg-transparent">
+                      <Filter className="w-4 h-4" />
+                      Filters
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left">
+                    <SheetHeader>
+                      <SheetTitle className="text-lg py-3">Filters</SheetTitle>
+                    </SheetHeader>
+                    {/* CATEGORY COLLAPSIBLE */}
+                  <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
+                    <CollapsibleTrigger className="flex items-center justify-between font-semibold">
+                      <span className="ml-4">Category</span>
+                      <ChevronDown
+                        className={`mr-4 h-4 w-4 transition ${categoryOpen ? "rotate-180" : ""}`}
+                      />
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-1 pl-2">
+                      <button
+                        className={`w-full text-left p-2  rounded transition
+                          ${
+                            selectedCategory === "all"
+                              ? "bg-primary text-white"
+                              : "hover:bg-muted"
+                          }`}
+                        onClick={() => {
+                          handleCategoryChange("all")
+                          setMobileFiltersOpen(false)
+                        }}
+                      >
+                        All Categories
+                      </button>
+
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          className={`w-full text-left p-2 rounded transition
+                            ${
+                              selectedCategory === cat.id
+                                ? "bg-green-600 text-white"
+                                : "hover:bg-muted"
+                            }`}
+                          onClick={() => {
+                            handleCategoryChange(cat.id)
+                            setMobileFiltersOpen(false)
+                          }}
+                        >
+                          {cat.name}
+                        </button>
                       ))}
-                    </div>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+
+                    </CollapsibleContent>
+                  </Collapsible>
+                  {/* SORT COLLAPSIBLE */}
+                  <Collapsible open={sortOpen} onOpenChange={setSortOpen}>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between font-semibold">
+                      <span className="ml-4">Sort By</span>
+                      <ChevronDown
+                        className={`mr-4 h-4 w-4 transition ${sortOpen ? "rotate-180" : ""}`}
+                      />
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-1 pl-2">
+                      {[
+                        { value: "rating", label: "Highest Rated" },
+                        { value: "reviews", label: "Most Reviewed" },
+                        { value: "recent", label: "Recently Added" }
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          className={`w-full text-left p-2 rounded transition
+                            ${
+                              sortBy === opt.value
+                                ? "bg-primary text-white"
+                                : "hover:bg-muted"
+                            }`}
+                          onClick={() => {
+                            setSortBy(opt.value)
+                            setMobileFiltersOpen(false)
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </div>
           </div>
 
           {/* Loading State */}

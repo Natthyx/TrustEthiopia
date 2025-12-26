@@ -181,7 +181,7 @@ export default function UserSettingsPage() {
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
               <CardDescription>
-                Update your details. Email changes require clicking a link sent to your inbox. Phone changes require OTP.
+                Update your details.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -216,7 +216,7 @@ export default function UserSettingsPage() {
                     disabled={true}
                   />
                   <p className="text-xs text-muted-foreground">
-                    A confirmation link will be sent to the new email.
+                    You can't change your email.
                   </p>
                 </div>
 
@@ -232,7 +232,7 @@ export default function UserSettingsPage() {
                     disabled={true}
                   />
                   <p className="text-xs text-muted-foreground">
-                    You will receive a 6-digit OTP to verify the new number.
+                    You can't change your phone number.
                   </p>
                 </div>
 

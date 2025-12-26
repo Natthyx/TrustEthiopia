@@ -78,7 +78,7 @@ export function TrustpilotHero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-background pt-20 pb-32">
+    <section className="relative overflow-hidden bg-background pt-20 pb-10 md:pt-35 md:pb-35">
       <div className="relative mx-auto max-w-4xl px-4 text-center">
         <h1 className="text-5xl font-bold text-foreground mb-4">Find trusted Ethiopian businesses</h1>
         <p className="text-xl text-muted-foreground mb-12">እውነተኛ ቢዝነስ ያግኙ፣ ልምድዎትን ያካፍሉ፣ ታማኝ ኢትዪዽያን በአንድነት እንገነባ።</p>
