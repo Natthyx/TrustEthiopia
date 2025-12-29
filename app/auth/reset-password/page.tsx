@@ -23,16 +23,20 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Check if we have a valid token
-    const token_hash = searchParams.get('token_hash')
-    const type = searchParams.get('type')
-    
-    if (token_hash && type === 'recovery') {
-      setIsValidToken(true)
-    } else {
-      setIsValidToken(false)
+    // Check if we have an active session (set by the callback route)
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (session) {
+        setIsValidToken(true)
+      } else {
+        setIsValidToken(false)
+        console.error("No active session found for password reset:", error)
+      }
     }
-  }, [searchParams])
+
+    checkSession()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,8 +59,10 @@ export default function ResetPasswordPage() {
         setError(error.message)
       } else {
         setMessage("Password updated successfully. Redirecting to login...")
+        // Re-read profile to ensure session is updated or just sign out and redirect
+        await supabase.auth.signOut()
         setTimeout(() => {
-          router.push('/auth/login')
+          router.push('/auth/login?message=password_updated')
         }, 2000)
       }
     } catch (err) {
@@ -74,9 +80,9 @@ export default function ResetPasswordPage() {
           <div className="w-full max-w-md">
             <Card className="p-8 mb-6 text-center">
               <div className="flex justify-center mb-4">
-                <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-              <p className="text-muted-foreground">Verifying reset token...</p>
+              <p className="text-muted-foreground">Verifying access...</p>
             </Card>
           </div>
         </main>
@@ -91,11 +97,11 @@ export default function ResetPasswordPage() {
         <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
           <div className="w-full max-w-md">
             <Card className="p-8 mb-6">
-              <h1 className="text-2xl font-bold text-center mb-4">Invalid Reset Link</h1>
+              <h1 className="text-2xl font-bold text-center mb-4">Invalid or Expired Link</h1>
               <p className="text-muted-foreground text-center mb-6">
-                The password reset link is invalid or has expired.
+                The password reset link is invalid, has expired, or was already used.
               </p>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full" variant="outline">
                 <Link href="/auth/forgot-password">Request New Reset Link</Link>
               </Button>
             </Card>

@@ -38,6 +38,8 @@ export default function LoginPage() {
       setError("Your account has been banned. Please contact support for assistance.")
     } else if (urlMessage === "phone_verified") {
       setSuccess("Your phone has been verified. Please log in.")
+    } else if (urlMessage === "password_updated") {
+      setSuccess("Your password has been updated successfully. You can now log in with your new password.")
     }
 
     if (urlError === "invalid_token") {

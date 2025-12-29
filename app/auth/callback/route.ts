@@ -26,17 +26,19 @@ export async function GET(request: Request) {
       if (sessionData.session) {
         sessionCreated = true;
 
+        // If next is specified, redirect there (e.g., /auth/reset-password)
+        if (next && next !== '/') {
+          return NextResponse.redirect(new URL(next, origin).toString());
+        }
+
         // NEW: Check if this is a phone-only user who just added an email
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.phone && user?.email) {
-          // This user has both phone and email → likely just confirmed a new email
-          // Redirect to set password so they can log in with email+password
           const redirectUrl = new URL('/auth/set-password', origin);
           redirectUrl.searchParams.set('message', 'email_added_set_password');
           return NextResponse.redirect(redirectUrl.toString());
         }
 
-        // Your original behavior for regular signup/email verification
         const redirectUrl = new URL('/auth/login', origin);
         redirectUrl.searchParams.set('message', 'email_verified');
         return NextResponse.redirect(redirectUrl.toString());
@@ -55,6 +57,11 @@ export async function GET(request: Request) {
       if (data.session) {
         sessionCreated = true;
 
+        // If next is specified, redirect there
+        if (next && next !== '/') {
+          return NextResponse.redirect(new URL(next, origin).toString());
+        }
+
         // Special handling for email_change (new email confirmed)
         if (type === "email_change") {
           const redirectUrl = new URL('/auth/set-password', origin);
@@ -62,14 +69,13 @@ export async function GET(request: Request) {
           return NextResponse.redirect(redirectUrl.toString());
         }
 
-        // Phone verification success → redirect to dashboard or profile
+        // Phone verification success
         if (type === "sms" || type === "phone_change") {
-          const redirectUrl = new URL('/user/setting', origin); // ← Change to your profile page
+          const redirectUrl = new URL('/user/setting', origin);
           redirectUrl.searchParams.set('message', 'phone_verified');
           return NextResponse.redirect(redirectUrl.toString());
         }
 
-        // Default OTP success
         const redirectUrl = new URL('/auth/login', origin);
         redirectUrl.searchParams.set('message', 'email_verified');
         return NextResponse.redirect(redirectUrl.toString());
