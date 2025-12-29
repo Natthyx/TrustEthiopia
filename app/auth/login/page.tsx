@@ -80,7 +80,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error)
       } else if (result?.success && result.redirectPath) {
-        router.push(result.redirectPath)
+        // Check for returnTo parameter
+        const returnTo = searchParams.get("returnTo")
+        router.push(returnTo || result.redirectPath)
       }
     } catch (err) {
       console.error("Login error:", err)
@@ -133,7 +135,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error)
       } else if (result?.success && result.redirectPath) {
-        router.push(result.redirectPath)
+        // Check for returnTo parameter
+        const returnTo = searchParams.get("returnTo")
+        router.push(returnTo || result.redirectPath)
       }
     } catch (err) {
       console.error("OTP verification error:", err)

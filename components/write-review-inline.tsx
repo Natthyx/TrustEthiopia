@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RatingStars } from "./rating-stars"
+import { useRouter, usePathname } from "next/navigation"
 import { createClient } from '@/lib/supabase/client'
 import { toast } from "sonner"
 
@@ -36,7 +37,9 @@ export function WriteReviewInline({
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
-
+  const router = useRouter()
+  const pathname = usePathname()
+  
   const handleSubmit = async () => {
     if (!businessId) {
       toast.error("Business information is missing")
@@ -52,7 +55,9 @@ export function WriteReviewInline({
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       
       if (userError || !user) {
-        toast.error("You must be logged in to submit a review")
+        toast.error("Please login to submit a review")
+        const returnTo = encodeURIComponent(pathname)
+        router.push(`/auth/login?returnTo=${returnTo}`)
         setSubmitting(false)
         return
       }
