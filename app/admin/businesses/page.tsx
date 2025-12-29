@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus } from "lucide-react"
-import { Search, CheckCircle, XCircle, Eye, Edit } from "lucide-react"
+import { Search, CheckCircle, XCircle, Eye, Edit, Trash2 } from "lucide-react"
 
 interface Business {
   id: string
@@ -45,6 +45,7 @@ export default function AdminBusinessesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isBanDialogOpen, setIsBanDialogOpen] = useState(false)
   const [isUnbanDialogOpen, setIsUnbanDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -223,6 +224,31 @@ export default function AdminBusinessesPage() {
     }
   }
 
+  const handleDeleteBusiness = async () => {
+    if (!selectedBusiness) return;
+
+    try {
+      const response = await fetch(`/api/admin/businesses/${selectedBusiness.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete business')
+      }
+
+      // Update local state
+      setBusinesses(prev => prev.filter(business => business.id !== selectedBusiness.id))
+      
+      setIsDeleteDialogOpen(false)
+      setSelectedBusiness(null)
+    } catch (error) {
+      console.error('Error deleting business:', error)
+    }
+  }
+
   if (loading) {
     return (
       <>
@@ -334,32 +360,50 @@ export default function AdminBusinessesPage() {
                               Edit
                             </Button>
                           )}
-                          {business.is_banned ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedBusiness(business)
-                                setIsUnbanDialogOpen(true)
-                              }}
-                              className="gap-2"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                              Unban
-                            </Button>
-                          ) : (
+                          {business.created_by_admin && business.owner_role === 'admin' && (
                             <Button
                               size="sm"
                               variant="destructive"
                               onClick={() => {
                                 setSelectedBusiness(business)
-                                setIsBanDialogOpen(true)
+                                setIsDeleteDialogOpen(true)
                               }}
                               className="gap-2"
                             >
-                              <XCircle className="w-4 h-4" />
-                              Ban
+                              <Trash2 className="w-4 h-4" />
+                              Delete
                             </Button>
+                          )}
+                          {!(business.created_by_admin && business.owner_role === 'admin') && (
+                            <>
+                              {business.is_banned ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedBusiness(business)
+                                    setIsUnbanDialogOpen(true)
+                                  }}
+                                  className="gap-2"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                  Unban
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setSelectedBusiness(business)
+                                    setIsBanDialogOpen(true)
+                                  }}
+                                  className="gap-2"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                  Ban
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                       </TableCell>
@@ -526,6 +570,39 @@ export default function AdminBusinessesPage() {
                     onClick={handleUnbanBusiness}
                   >
                     Unban Business
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Delete Business Dialog */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Business</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to permanently delete {selectedBusiness?.business_name}?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <p className="text-sm text-muted-foreground font-medium text-red-600">
+                  This action is permanent and cannot be undone. All data associated with this business will be lost.
+                </p>
+                <div className="flex gap-2 pt-4 border-t border-border">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 bg-transparent" 
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="flex-1" 
+                    onClick={handleDeleteBusiness}
+                    variant="destructive"
+                  >
+                    Delete Permanently
                   </Button>
                 </div>
               </div>

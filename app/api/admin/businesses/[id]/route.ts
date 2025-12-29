@@ -54,3 +54,25 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   return NextResponse.json(data);
 }
+
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  // 1. Validate admin identity
+  const admin = await isAdmin(req);
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // 2. Await params to get the actual values
+  const { id } = await params;
+
+  // 3. Delete the business
+  const { error } = await supabaseAdmin
+    .from("businesses")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting business:", error);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true });
+}
